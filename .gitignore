@@ -1,0 +1,7 @@
+/.vscode
+/gcc
+/qemu
+*.o
+*.elf
+*.img
+*.map
