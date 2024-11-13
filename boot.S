@@ -1,0 +1,64 @@
+#include "arm/regs.h"
+.section ".text.boot"  // Make sure the linker puts this at the start of the kernel image
+
+.global _start  // Execution starts here
+
+_start:
+    // Check processor ID is zero (executing on main core), else hang
+    mrs     x1, mpidr_el1
+    and     x1, x1, #3
+    cbz     x1, 2f
+    // We're not on the main core, so hang in an infinite wait loop
+1:  wfe
+    b       1b
+2:  // We're on the main core!
+    // Clean the BSS section
+    ldr     x1, =__bss_start     // Start address
+    ldr     w2, =__bss_size      // Size of the section
+3:  cbz     w2, 4f               // Quit loop if zero
+    str     xzr, [x1], #8
+    sub     w2, w2, #1
+    cbnz    w2, 3b               // Loop if non-zero
+
+    // Check EL
+4:  bl      get_el
+    sub     x6, x0, #1
+    cbz     x6, main_entry       // go to main 
+    ldr     x0, =main_entry
+    bl      switch_to_el1
+    
+main_entry:  
+    // Set stack to start below our code
+    ldr     x1, =_start
+    mov     sp, x1
+
+    bl      main
+    // In case it does return, halt the master core too
+    b       1b
+
+.section ".text"
+
+.globl get_el
+get_el:
+    mrs x0, CurrentEL
+    lsr x0, x0, #2
+    ret
+
+/* void switch_to_el1(void* el1_entry); */
+.globl switch_to_el1
+switch_to_el1:
+    ldr	x1, =SCTLR_VALUE_MMU_DISABLED
+	msr	sctlr_el1, x1		
+
+	ldr	x1, =HCR_VALUE
+	msr	hcr_el2, x1
+
+	// ldr	x1, =SCR_VALUE
+	// msr	scr_el2, x1
+
+	ldr	x1, =SPSR_VALUE
+	msr	spsr_el2, x1
+
+	msr	elr_el2, x0
+
+	eret				
