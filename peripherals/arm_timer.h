@@ -18,7 +18,7 @@ typedef struct arm_timer_regs_struct {
     volatile uint32_t reload;
     volatile uint32_t prediv;
     volatile uint32_t freecnt;
-} arvolatile m_timer_regs;
+} arm_timer_regs;
 
 #define ARM_TIMER_REGS_PTR          ((timer_regs *) ARM_TIMER_LOAD_OFFSET)
 

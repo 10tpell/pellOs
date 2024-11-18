@@ -1,4 +1,4 @@
-#include "uart.h"
+#include "peripherals/uart.h"
 #include "reg_utils.h"
 
 void uart_init() {
@@ -30,6 +30,7 @@ void uart_transmitToEndLine(char* buff) {
     uart_writeByteBlocks(buff[i]);
     uart_writeByteBlocks('\r');
 }
+
 void uart_transmitStr(char* buff) {
     uint32_t i = 0;
     while(buff[i] != 0) {
@@ -38,4 +39,8 @@ void uart_transmitStr(char* buff) {
     }
     uart_writeByteBlocks('\n');
     uart_writeByteBlocks('\r');
+}
+
+void _putchar(char character) {
+    uart_writeByteBlocks(character);
 }

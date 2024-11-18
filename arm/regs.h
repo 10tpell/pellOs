@@ -39,4 +39,11 @@
 #define SPSR_EL1h			(5 << 0)
 #define SPSR_VALUE			(SPSR_MASK_ALL | SPSR_EL1h)
 
+#define SPSR_EL3_D		BIT(9)
+#define SPSR_EL3_A		BIT(8)
+#define SPSR_EL3_I		BIT(7)
+#define SPSR_EL3_F		BIT(6)
+#define SPSR_EL3_MODE_EL2H	9
+#define SPSR_EL3_VAL 0b111101001
+
 #endif

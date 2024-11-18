@@ -2,7 +2,6 @@
 .section ".text.boot"  // Make sure the linker puts this at the start of the kernel image
 
 .global _start  // Execution starts here
-
 _start:
     // Check processor ID is zero (executing on main core), else hang
     mrs     x1, mpidr_el1
@@ -22,14 +21,20 @@ _start:
 
     // Check EL
 4:  bl      get_el
-    sub     x6, x0, #1
-    cbz     x6, main_entry       // go to main 
-    ldr     x0, =main_entry
-    bl      switch_to_el1
+    sub     x6, x0, #3
+    ldr     x0, =EL2     
+    cbz     x6, switch_to_el2    // Go to EL2 if in EL3
+EL2:
+    bl      get_el
+    sub     x6, x0, #2     
+    ldr     x0, =EL1      
+    cbz     x6, switch_to_el1    // Go to EL1 if in EL3
+EL1:
+    bl      main_entry       // go to main 
     
 main_entry:  
     // Set stack to start below our code
-    ldr     x1, =_start
+    ldr     x1, =0x400000
     mov     sp, x1
 
     bl      main
@@ -44,6 +49,26 @@ get_el:
     lsr x0, x0, #2
     ret
 
+.globl switch_to_el2
+switch_to_el2:
+    mov     x1, #0x33ff
+    msr     cptr_el3, x1 	 // Disable coprocessor traps to EL3
+    mov     x1, #3 << 20
+    msr     cpacr_el1, x1	 // Enable FP/SIMD at EL1
+
+    bl      setup_gic
+    // Now get ready to switch from EL3 down to EL2
+
+    ldr     x1, =SCR_VALUE
+    msr     scr_el3, x1
+
+    ldr     x1, =SPSR_EL3_VAL
+    msr     spsr_el3, x1
+    
+    msr     elr_el3, x0
+
+    eret
+
 /* void switch_to_el1(void* el1_entry); */
 .globl switch_to_el1
 switch_to_el1:
@@ -52,9 +77,6 @@ switch_to_el1:
 
 	ldr	x1, =HCR_VALUE
 	msr	hcr_el2, x1
-
-	// ldr	x1, =SCR_VALUE
-	// msr	scr_el2, x1
 
 	ldr	x1, =SPSR_VALUE
 	msr	spsr_el2, x1

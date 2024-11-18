@@ -1,6 +1,12 @@
-#include "peripherals/irq_controller.h"
+#ifdef USE_ARMC_IRQS
+#include "peripherals/irq_armc.h"
+#else
+#include "peripherals/irq_gic.h"
+#endif
+
 #include "peripherals/system_timer.h"
 #include "peripherals/uart.h"
+#include "printf.h"
 
 const char *entry_error_messages[] = {
 	"SYNC_INVALID_EL1t",
@@ -24,27 +30,112 @@ const char *entry_error_messages[] = {
 	"ERROR_INVALID_EL0_32"	
 };
 
+#ifdef USE_ARMC_IRQS
+
 void enable_interrupt_controller()
 {
     irq_controller_regs* ptr = IRQ0_REGS_PTR;
-    ptr->irq_set_en_0 = (uint32_t) SYS_TIMER_IRQ_1;
+    ptr->irq_set_en_0 = (uint32_t) SYSTEM_TIMER_IRQ_1;
+}
+
+#else
+
+/*
+assigns a cpu target to handle an isr.
+4 ISRs fit in one target reg.
+8 possible cpus/targets to handle ISR
+bit 0 is cpu0, bit 7 is cpu7
+*/
+void assignTargets(uint32_t isrId, uint32_t targetId) {
+    uint32_t isrBlock = isrId / 4;
+    uint32_t targetOffset = ((isrId % 4) * 8) + targetId;
+    volatile uint32_t* targetReg = (volatile uint32_t *) IRQ_GICD_IRQ_TARGET + (isrBlock);
+    *targetReg |= 1 << targetOffset;
+}
+
+
+void enableISR(uint32_t isrId)
+{
+    uint32_t isrBlock = isrId / 32;
+    uint32_t isrOffset = isrId % 32;
+    volatile uint32_t* enableReg = (volatile uint32_t*) IRQ_GICD_ISR_ENABLE + (isrBlock); 
+    *enableReg |= 1 << isrOffset;
+}
+
+void enable_interrupt_controller()
+{
+    assignTargets(SYSTEM_TIMER_IRQ_1, 0);
+    enableISR(SYSTEM_TIMER_IRQ_1);
+}
+/*
+#define IRQ_GIC_BASE_PERIPHERAL         0xFF840000U
+
+#define IRQ_GIC_DIST_OFFSET             0x1000U
+#define IRQ_GIC_DIST                    (IRQ_GIC_BASE_PERIPHERAL + IRQ_GIC_DIST_OFFSET)
+#define IRQ_GICD_BASE                   IRQ_GIC_DIST
+
+#define IRQ_GIC_CPU_OFFSET              0x2000U
+#define IRQ_GIC_CPU                     (IRQ_GIC_BASE_PERIPHERAL + IRQ_GIC_CPU_OFFSET)
+#define IRQ_GICC_BASE                   IRQ_GIC_CPU
+#define IRQ_GICC_CTLR_OFFSET            0x0U
+#define IRQ_GICC_CTLR                   (IRQ_GICC_BASE + IRQ_GICC_CTLR_OFFSET)
+#define IRQ_GICC_PMR_OFFSET             0x04U
+#define IRQ_GICC_PMR                    (IRQ_GICC_BASE + IRQ_GICC_PMR_OFFSET)
+#define IRQ_GICC_BPR_OFFSET             0x08U
+#define IRQ_GICC_BPR                    (IRQ_GICC_BASE + IRQ_GICC_BPR_OFFSET)
+#define IRQ_GICC_IAR_OFFSET             0x0CU
+#define IRQ_GICC_IAR                    (IRQ_GICC_BASE + IRQ_GICC_IAR_OFFSET)  // 0xFF84200C
+#define IRQ_GICC_EOIR_OFFSET            0x10U
+#define IRQ_GICC_EOIR                   (IRQ_GICC_BASE + IRQ_GICC_EOIR_OFFSET)
+#define IRQ_GICC_RPR_OFFSET             0x14U
+#define IRQ_GICC_RPR                    (IRQ_GICC_BASE + IRQ_GICC_RPR_OFFSET)
+#define IRQ_GICC_HPPIR_OFFSET           0x18U
+#define IRQ_GICC_HPPIR                  (IRQ_GICC_BASE + IRQ_GICC_HPPIR_OFFSET)
+*/
+
+void gic_debug_print() 
+{
+    printf("============== GIC REGS ===============\n");
+    for (uint32_t i = 0; i < GIC_MAX_ISRS; i+=32)
+    {
+        printf("GICD_ISR_ENABLE_%d (0x%08x): 0x%08x\n", i/32, ((volatile uint32_t *) (IRQ_GICD_ISR_ENABLE + i)), *((volatile uint32_t *) (IRQ_GICD_ISR_ENABLE + i)));
+    }
+    for (uint32_t i = 0; i < GIC_MAX_ISRS; i+=4)
+    {
+        printf("GICD_IRQ_TARGET_%d (0x%08x): 0x%08x\n", i/4, ((volatile uint32_t *) (IRQ_GICD_IRQ_TARGET + i)), *((volatile uint32_t *) (IRQ_GICD_IRQ_TARGET + i)));
+    }
+    printf("GICC_IAR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_IAR));
+    printf("GICC_EOIR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_EOIR));
+}
+
+#endif
+
+void handle_irq(void)
+{
+    #ifdef USE_ARMC_IRQS
+	unsigned int irq = IRQ0_REGS_PTR->irq_pending_0;
+    #else
+    uint32_t irqAck = *((volatile uint32_t*) IRQ_GICC_IAR);
+    uint32_t irq = irqAck & 0x2FF;
+    #endif
+	switch (irq) {
+		case (SYSTEM_TIMER_IRQ_1):
+			handle_timer_c0_ISR();
+
+            #ifndef USE_ARMC_IRQS
+            *((volatile uint32_t*)IRQ_GICC_EOIR) |= irqAck;
+            #endif
+
+			break;
+		default:
+            // uart_transmitStr("Unknown pending irq");
+			printf("Unknown pending irq: %x\r\n", irq);
+            break;
+	}
 }
 
 void show_invalid_exception_message(int type, unsigned long esr, unsigned long address)
 {
-    uart_transmitStr("Invalid entry hit");
-	// printf("%s, ESR: %x, address: %x\r\n", entry_error_messages[type], esr, address);
-}
-
-void handle_irq(void)
-{
-	unsigned int irq = IRQ0_REGS_PTR->irq_pending_0;
-	switch (irq) {
-		case (SYS_TIMER_IRQ_1):
-			handle_timer_c0_ISR();
-			break;
-		default:
-            uart_transmitStr("Unknown pending irq");
-			// printf("Unknown pending irq: %x\r\n", irq);
-	}
+    // uart_transmitStr("Invalid entry hit");
+	printf("%s, ESR: %x, address: %x\r\n", entry_error_messages[type], esr, address);
 }

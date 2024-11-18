@@ -4,7 +4,7 @@
 #include "base.h"
 
 #define SYSTEM_TIMER_PERIPHERAL_BASE        (PERIPHERAL_BASE_ADDR + 0x3000)
-#define CLOCK_RATE 100000
+#define CLOCK_RATE 1000000
 
 /*
 CS System Timer Control/Status
@@ -29,5 +29,8 @@ typedef struct system_timer_struct {
 
 void system_timer_init();
 void handle_timer_c0_ISR();
+uint32_t get_timer_val();
+uint32_t wait_time(uint32_t time_us);
+uint8_t poll_isr(uint8_t timer_id);
 
 #endif

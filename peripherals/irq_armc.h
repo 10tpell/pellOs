@@ -1,6 +1,8 @@
 #ifndef __IRQ_CONTROLLER_H__
 #define __IRQ_CONTROLLER_H__
 
+#ifdef USE_ARMC_IRQS
+
 #include "base.h"
 
 #define IRQ_BASE_PERIPHERAL     PERIPHERAL_BASE_ADDR + 0xB000U
@@ -41,10 +43,14 @@ typedef struct irq_controller_regs_struct {
 #define IRQ3_REGS_PTR           ((irq_controller_regs *) IRQ3_BASE_ADDR)
 
 #define SYS_TIMER_IRQ_0         1
-#define SYS_TIMER_IRQ_1         2
+#define SYSTEM_TIMER_IRQ_1      2
 #define SYS_TIMER_IRQ_2         4
 #define SYS_TIMER_IRQ_3         8
 
 void enable_interrupt_controller();
+
+#else
+#error "This file has been included when not using armc irqs"
+#endif
 
 #endif
