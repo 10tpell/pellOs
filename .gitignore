@@ -1,6 +1,6 @@
-/.vscode
-/gcc
-/qemu
+.vscode/
+gcc/
+qemu/
 *.o
 *.elf
 *.img
