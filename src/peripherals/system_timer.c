@@ -1,8 +1,8 @@
-#include "peripherals/system_timer.h"
-#include "arm/time.h"
-#include "peripherals/uart.h"
-#include "peripherals/framebuffer.h"
-#include "printf.h"
+#include <peripherals/system_timer.h>
+#include <arm/time.h>
+#include <peripherals/uart.h>
+#include <peripherals/framebuffer.h>
+#include <utils/printf.h>
 
 void system_timer_init() {
     SYSTEM_TIMER_REGS_PTR->c1 = get_timer_val() + TICK_INTERVAL;

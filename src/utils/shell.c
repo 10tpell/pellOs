@@ -1,6 +1,6 @@
-#include "shell.h"
-#include "peripherals/framebuffer.h"
-#include "types.h"
+#include <utils/shell.h>
+#include <peripherals/framebuffer.h>
+#include <types.h>
 
 #define INITIAL_X           15
 #define INITIAL_Y           15

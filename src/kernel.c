@@ -1,22 +1,22 @@
-#include "types.h"
-#include "peripherals/io.h"
-#include "arm/irq.h"
-#include "config.h"
+#include <types.h>
+#include <peripherals/io.h>
+#include <arm/irq.h>
+#include <config.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
-    #include "peripherals/irq_armc.h"
+    #include <peripherals/irq_armc.h>
 #else
     #if IRQ_CONTROLLER == USE_GIC_IRQS
-        #include "peripherals/irq_gic.h"
+        #include <peripherals/irq_gic.h>
     #else
-        #include "peripherals/irq_tut.h"
+        #include <peripherals/irq_tut.h>
     #endif
 #endif
 
-#include "peripherals/system_timer.h"
-#include "peripherals/framebuffer.h"
-#include "printf.h"
-#include "shell.h"
+#include <peripherals/system_timer.h>
+#include <peripherals/framebuffer.h>
+#include <utils/printf.h>
+#include <utils/shell.h>
 
 void putc(void* p, char c) {
     #ifdef UART_DEBUG

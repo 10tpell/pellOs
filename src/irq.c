@@ -1,15 +1,15 @@
-#include "config.h"
+#include <config.h>
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
-#include "peripherals/irq_armc.h"
+#include <peripherals/irq_armc.h>
 #else
     #if IRQ_CONTROLLER == USE_GIC_IRQS
-    #include "peripherals/irq_gic.h"
+    #include <peripherals/irq_gic.h>
     #endif
 #endif
 
-#include "peripherals/system_timer.h"
-#include "peripherals/uart.h"
-#include "printf.h"
+#include <peripherals/system_timer.h>
+#include <peripherals/uart.h>
+#include <utils/printf.h>
 
 #if IRQ_CONTROLLER < USE_TUT_IRQS
 const char *entry_error_messages[] = {
