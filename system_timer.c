@@ -1,16 +1,17 @@
 #include "peripherals/system_timer.h"
 #include "arm/time.h"
 #include "peripherals/uart.h"
+#include "peripherals/framebuffer.h"
+#include "printf.h"
 
 void system_timer_init() {
-    SYSTEM_TIMER_REGS_PTR->c1 = get_timer_val() + CLOCK_RATE;
+    SYSTEM_TIMER_REGS_PTR->c1 = get_timer_val() + TICK_INTERVAL;
 }
 
 void handle_timer_c0_ISR() {
-    uint32_t current_timer_val = SYSTEM_TIMER_REGS_PTR->clo;
-    SYSTEM_TIMER_REGS_PTR->c1 = get_timer_val() + CLOCK_RATE;
-
-    uart_transmitStr("ISR: 1 second has passed...");
+    SYSTEM_TIMER_REGS_PTR->c1 = get_timer_val() + TICK_INTERVAL;
+    SYSTEM_TIMER_REGS_PTR->cs |= 2;
+    printf("ISR: 0.0001 second has passed...\n");
 }
 
 uint32_t get_timer_val() {

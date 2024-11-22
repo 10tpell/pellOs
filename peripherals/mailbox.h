@@ -49,6 +49,6 @@ enum {
     MBOX_TAG_LAST       = 0
 };
 
-unsigned int mbox_call(unsigned char ch);
+unsigned int mailbox_call(unsigned char ch);
 
 #endif

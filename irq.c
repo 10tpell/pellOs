@@ -1,13 +1,17 @@
-#ifdef USE_ARMC_IRQS
+#include "config.h"
+#if IRQ_CONTROLLER == USE_ARMC_IRQS
 #include "peripherals/irq_armc.h"
 #else
-#include "peripherals/irq_gic.h"
+    #if IRQ_CONTROLLER == USE_GIC_IRQS
+    #include "peripherals/irq_gic.h"
+    #endif
 #endif
 
 #include "peripherals/system_timer.h"
 #include "peripherals/uart.h"
 #include "printf.h"
 
+#if IRQ_CONTROLLER < USE_TUT_IRQS
 const char *entry_error_messages[] = {
 	"SYNC_INVALID_EL1t",
 	"IRQ_INVALID_EL1t",		
@@ -30,7 +34,7 @@ const char *entry_error_messages[] = {
 	"ERROR_INVALID_EL0_32"	
 };
 
-#ifdef USE_ARMC_IRQS
+#if IRQ_CONTROLLER == USE_ARMC_IRQS
 
 void enable_interrupt_controller()
 {
@@ -98,21 +102,46 @@ void gic_debug_print()
     printf("============== GIC REGS ===============\n");
     for (uint32_t i = 0; i < GIC_MAX_ISRS; i+=32)
     {
-        printf("GICD_ISR_ENABLE_%d (0x%08x): 0x%08x\n", i/32, ((volatile uint32_t *) (IRQ_GICD_ISR_ENABLE + i)), *((volatile uint32_t *) (IRQ_GICD_ISR_ENABLE + i)));
+        printf("GICD_ISR_ENABLE_%d (0x%08x): 0x%08x\n", i/32, ((volatile uint32_t *) (IRQ_GICD_ISR_ENABLE + i/8)), *((volatile uint32_t *) (IRQ_GICD_ISR_ENABLE + i/8)));
     }
     for (uint32_t i = 0; i < GIC_MAX_ISRS; i+=4)
     {
         printf("GICD_IRQ_TARGET_%d (0x%08x): 0x%08x\n", i/4, ((volatile uint32_t *) (IRQ_GICD_IRQ_TARGET + i)), *((volatile uint32_t *) (IRQ_GICD_IRQ_TARGET + i)));
     }
+    for (uint32_t i = 0; i < GIC_MAX_ISRS; i+=32)
+    {
+        printf("GICD_ISRPEND_%d (0x%08x): 0x%08x\n", i/32, ((volatile uint32_t *) (IRQ_GICD_ICPEND + i/8)), *((volatile uint32_t *) (IRQ_GICD_ICPEND + i/8)));
+    }
     printf("GICC_IAR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_IAR));
     printf("GICC_EOIR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_EOIR));
+    printf("GICC_HPPIR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_HPPIR));
+}
+
+void gic_debug_print_for_irq(uint32_t irqId)
+{
+    printf("GICC_CTLR: 0x%08x\nGICD_CTLR: 0x%08x\n", *((volatile uint32_t*) IRQ_GICC_BASE), *((volatile uint32_t*) IRQ_GICD_BASE));
+    volatile uint32_t* groupReg = (volatile uint32_t*) IRQ_GICD_ISR_GROUP + (irqId / 32);
+    printf("GICD_ISR_GROUP_%d (0x%08x): 0x%08x\n", irqId/32, groupReg, *groupReg);
+    volatile uint32_t* enableReg = (volatile uint32_t*) IRQ_GICD_ISR_ENABLE + (irqId / 32);
+    printf("GICD_ISR_ENABLE_%d (0x%08x): 0x%08x\n", irqId/32, enableReg, *enableReg);
+
+    volatile uint32_t* targetReg = (volatile uint32_t*) IRQ_GICD_IRQ_TARGET + (irqId / 4);
+    printf("GICD_IRQ_TARGET_%d (0x%08x): 0x%08x\n", irqId/4, targetReg, *targetReg);
+
+    volatile uint32_t* pendReg = (volatile uint32_t*) IRQ_GICD_ICPEND + (irqId/32);
+    printf("GICD_ISRPEND_%d (0x%08x): 0x%08x\n", irqId/32, pendReg, *pendReg);
+
+    printf("GICC_IAR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_IAR));
+    printf("GICC_EOIR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_EOIR));
+    printf("GICC_HPPIR: 0x%08x\n", *((volatile uint32_t *) IRQ_GICC_HPPIR));
 }
 
 #endif
 
 void handle_irq(void)
 {
-    #ifdef USE_ARMC_IRQS
+    printf("Into the irq controller!\n");
+    #if IRQ_CONTROLLER == USE_ARMC_IRQS
 	unsigned int irq = IRQ0_REGS_PTR->irq_pending_0;
     #else
     uint32_t irqAck = *((volatile uint32_t*) IRQ_GICC_IAR);
@@ -122,7 +151,7 @@ void handle_irq(void)
 		case (SYSTEM_TIMER_IRQ_1):
 			handle_timer_c0_ISR();
 
-            #ifndef USE_ARMC_IRQS
+            #if IRQ_CONTROLLER == USE_GIC_IRQS
             *((volatile uint32_t*)IRQ_GICC_EOIR) |= irqAck;
             #endif
 
@@ -139,3 +168,5 @@ void show_invalid_exception_message(int type, unsigned long esr, unsigned long a
     // uart_transmitStr("Invalid entry hit");
 	printf("%s, ESR: %x, address: %x\r\n", entry_error_messages[type], esr, address);
 }
+
+#endif

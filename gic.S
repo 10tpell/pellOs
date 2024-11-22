@@ -1,3 +1,7 @@
+#include "config.h"
+
+#if IRQ_CONTROLLER == USE_GIC_IRQS
+
 #define ASM
 #include "peripherals/irq_gic.h"
 #undef ASM
@@ -31,3 +35,5 @@ setup_gic:				// Called from secure mode - set all interrupts to group 1 and ena
 	str	w1, [x2, x0]
 	b.ne	3b
 	ret
+
+#endif

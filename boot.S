@@ -1,4 +1,5 @@
 #include "arm/regs.h"
+#include "config.h"
 .section ".text.boot"  // Make sure the linker puts this at the start of the kernel image
 
 .global _start  // Execution starts here
@@ -49,6 +50,7 @@ get_el:
     lsr x0, x0, #2
     ret
 
+/* void switch_to_el2(void* el2_entry) */
 .globl switch_to_el2
 switch_to_el2:
     mov     x1, #0x33ff
@@ -56,7 +58,10 @@ switch_to_el2:
     mov     x1, #3 << 20
     msr     cpacr_el1, x1	 // Enable FP/SIMD at EL1
 
+
+#if IRQ_CONTROLLER == USE_GIC_IRQS
     bl      setup_gic
+#endif
     // Now get ready to switch from EL3 down to EL2
 
     ldr     x1, =SCR_VALUE
@@ -83,4 +88,6 @@ switch_to_el1:
 
 	msr	elr_el2, x0
 
-	eret				
+	eret	
+
+			

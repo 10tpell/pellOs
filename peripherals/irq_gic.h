@@ -1,19 +1,27 @@
 #ifndef __IRQ_GIC_H__
 #define __IRQ_GIC_H__
 
-#ifndef USE_ARMC_IRQS
+#include "../config.h"
+
+#if IRQ_CONTROLLER == USE_GIC_IRQS
 #include "base.h"
 
 #define GIC_MAX_ISRS 256U
 
 #define IRQ_GIC_BASE_PERIPHERAL         0xFF840000U
+// #define IRQ_GIC_BASE_PERIPHERAL         0x4c0040000U
 
 #define IRQ_GIC_DIST_OFFSET             0x1000U
 #define IRQ_GIC_DIST                    (IRQ_GIC_BASE_PERIPHERAL + IRQ_GIC_DIST_OFFSET)
 #define IRQ_GICD_BASE                   IRQ_GIC_DIST
+#define IRQ_GICD_ISR_GROUP_OFFSET       0x80U
+#define IRQ_GICD_ISR_GROUP              (IRQ_GICD_BASE + IRQ_GICD_ISR_GROUP_OFFSET)
 #define IRQ_GICD_ISR_ENABLE_OFFSET      0x100U
 #define IRQ_GICD_ISR_ENABLE             (IRQ_GICD_BASE + IRQ_GICD_ISR_ENABLE_OFFSET) // 0xFF841100U
-
+#define IRQ_GICD_ISPEND_OFFSET          0x200U
+#define IRQ_GICD_ISPEND                 (IRQ_GICD_BASE + IRQ_GICD_ISPEND_OFFSET)
+#define IRQ_GICD_ICPEND_OFFSET          0x280U
+#define IRQ_GICD_ICPEND                 (IRQ_GICD_BASE + IRQ_GICD_ICPEND_OFFSET)
 #define IRQ_GICD_IRQ_TARGET_OFFSET      0x800U
 #define IRQ_GICD_IRQ_TARGET             (IRQ_GICD_BASE + IRQ_GICD_IRQ_TARGET_OFFSET)
 
@@ -115,11 +123,11 @@ WO
 Deactivate Interrupt Register
 */
 
-/* System timer irq ids */
-#define SYSTEM_TIMER_IRQ_0 (0x60U)
-#define SYSTEM_TIMER_IRQ_1 (0x61U)
-#define SYSTEM_TIMER_IRQ_2 (0x62U)
-#define SYSTEM_TIMER_IRQ_3 (0x63U)
+//SYSTEM TIMER IDS
+#define SYSTEM_TIMER_IRQ_0 (0x60) //96
+#define SYSTEM_TIMER_IRQ_1 (0x61) //97
+#define SYSTEM_TIMER_IRQ_2 (0x62) //98
+#define SYSTEM_TIMER_IRQ_3 (0x63) //99
 
 #ifndef ASM
 /* function declarations */
@@ -127,6 +135,7 @@ void enableISR(uint32_t isrId);
 void assignTargets(uint32_t isrId, uint32_t targetId);
 void setup_gic();
 void gic_debug_print();
+void gic_debug_print_for_irq(uint32_t irqId);
 
 #endif
 

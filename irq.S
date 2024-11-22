@@ -1,4 +1,3 @@
-
 .globl irq_vector_init
 irq_vector_init:
     adr     x0, vectors
@@ -18,4 +17,10 @@ disable_irq:
 .globl irq_barrier
 irq_barrier:
     dsb sy
+    isb sy
     ret
+
+/* uint32_t read_isr_el1 ( void ) */
+.globl read_isr_el1
+read_isr_el1:
+    mrs x0, ISR_EL1
