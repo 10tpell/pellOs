@@ -8,4 +8,8 @@
 #define IRQ_CONTROLLER USE_GIC_IRQS
 // #define UART_DEBUG
 
+#define DEBUG_OFF 0
+#define DEBUG_ON 1
+#define EXTRA_DEBUG DEBUG_OFF
+
 #endif

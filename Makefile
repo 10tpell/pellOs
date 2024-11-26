@@ -31,4 +31,4 @@ kernel8.img: $(OFILES)
 
 clean:
 	/bin/rm bin/kernel8.elf *.o *.img > /dev/null 2> /dev/null || true
-	/bin/rm build/*.o > /dev/null 2> /dev/null || true
+	/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o > /dev/null 2> /dev/null || true

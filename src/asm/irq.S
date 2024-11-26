@@ -9,6 +9,11 @@ enable_irq:
     msr     daifclr, #2
     ret
 
+.globl get_daif
+get_daif:
+    mrs     x0, daif
+    ret
+
 .globl disable_irq
 disable_irq:
     msr     daifset, #2

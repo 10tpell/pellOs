@@ -12,7 +12,7 @@
 #define MM_PAGE_MEMORY_SIZE     (MM_AVAILABLE_PAGE_MAX - MM_AVAILABLE_PAGE_MIN)
 #define MM_NUM_OF_PAGES         (MM_PAGE_MEMORY_SIZE / PAGE_SIZE)
 
-uint32_t get_next_free_page();
+void* get_next_free_page();
 void free_page(uint32_t ptr);
 
 #endif

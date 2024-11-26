@@ -2,6 +2,7 @@
 #include <arm/time.h>
 #include <peripherals/uart.h>
 #include <peripherals/framebuffer.h>
+#include <scheduler/scheduler.h>
 #include <utils/printf.h>
 
 void system_timer_init() {
@@ -11,7 +12,7 @@ void system_timer_init() {
 void handle_timer_c0_ISR() {
     SYSTEM_TIMER_REGS_PTR->c1 = get_timer_val() + TICK_INTERVAL;
     SYSTEM_TIMER_REGS_PTR->cs |= 2;
-    printf("ISR: 0.0001 second has passed...\n");
+    scheduler_tick();
 }
 
 uint32_t get_timer_val() {

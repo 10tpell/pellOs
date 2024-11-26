@@ -2,6 +2,7 @@
 #include <peripherals/io.h>
 #include <arm/irq.h>
 #include <config.h>
+#include <scheduler/scheduler.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -26,6 +27,23 @@ void putc(void* p, char c) {
     #endif
 }
 
+void task1() {
+    printf("entering task1\n");
+    while(1) {
+        wait_time(TICK_INTERVAL/2);
+        printf("task1\n");
+    }
+}
+
+void task2() {
+    printf("entering task2\n");
+    enable_irq();
+    while(1) {
+        wait_time(TICK_INTERVAL*3);
+        printf("task2\n");
+    }
+}
+
 int main() {
     framebuffer_init();
     uart_init();
@@ -35,6 +53,9 @@ int main() {
     irq_vector_init();
     system_timer_init();
 
+    kernel_fork(&task1, (void*) 0);
+    kernel_fork(&task2, (void*) 0);
+
     printf("Enabling IRQs...\n");
     enable_interrupt_controller();
     irq_barrier();
@@ -43,5 +64,6 @@ int main() {
     
     while(1) {
         /* we're here forever */
+        schedule();
     }
 }

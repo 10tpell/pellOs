@@ -1,7 +1,7 @@
 #ifndef __ENTRY_H__
 #define __ENTRY_H__
 
-#define S_FRAME_SIZE			256 		// size of all saved registers 
+#define S_FRAME_SIZE			272 		// size of all saved registers 
 
 #define SYNC_INVALID_EL1t		0 
 #define IRQ_INVALID_EL1t		1 

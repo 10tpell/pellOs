@@ -4,7 +4,7 @@
 #include "base.h"
 
 #define SYSTEM_TIMER_PERIPHERAL_BASE        (PERIPHERAL_BASE_ADDR + 0x3000)
-#define CLOCK_RATE 1000000
+#define CLOCK_RATE 200000
 #define TICK_INTERVAL (CLOCK_RATE)
 
 /*

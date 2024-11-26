@@ -140,7 +140,6 @@ void gic_debug_print_for_irq(uint32_t irqId)
 
 void handle_irq(void)
 {
-    printf("Into the irq controller!\n");
     #if IRQ_CONTROLLER == USE_ARMC_IRQS
 	unsigned int irq = IRQ0_REGS_PTR->irq_pending_0;
     #else
@@ -149,15 +148,12 @@ void handle_irq(void)
     #endif
 	switch (irq) {
 		case (SYSTEM_TIMER_IRQ_1):
-			handle_timer_c0_ISR();
-
             #if IRQ_CONTROLLER == USE_GIC_IRQS
             *((volatile uint32_t*)IRQ_GICC_EOIR) |= irqAck;
             #endif
-
+			handle_timer_c0_ISR();
 			break;
 		default:
-            // uart_transmitStr("Unknown pending irq");
 			printf("Unknown pending irq: %x\r\n", irq);
             break;
 	}
@@ -165,7 +161,6 @@ void handle_irq(void)
 
 void show_invalid_exception_message(int type, unsigned long esr, unsigned long address)
 {
-    // uart_transmitStr("Invalid entry hit");
 	printf("%s, ESR: %x, address: %x\r\n", entry_error_messages[type], esr, address);
 }
 
