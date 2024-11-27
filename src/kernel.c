@@ -3,6 +3,7 @@
 #include <arm/irq.h>
 #include <config.h>
 #include <scheduler/scheduler.h>
+#include <usr/usr_syscalls.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -18,6 +19,7 @@
 #include <peripherals/framebuffer.h>
 #include <utils/printf.h>
 #include <utils/shell.h>
+#include <utils/memutils.h>
 
 void putc(void* p, char c) {
     #ifdef UART_DEBUG
@@ -27,20 +29,19 @@ void putc(void* p, char c) {
     #endif
 }
 
-void task1() {
-    printf("entering task1\n");
-    while(1) {
-        wait_time(TICK_INTERVAL/2);
-        printf("task1\n");
-    }
+void user_task() {
+    char test_buf[30];
+    memset(test_buf, 0, 30);
+
+    tfp_sprintf(test_buf, "Inside userspace!!\n\r");
+    call_syscall_write(test_buf);
+    call_syscall_exit(0);
 }
 
-void task2() {
+void kernel_task() {
     printf("entering task2\n");
-    enable_irq();
-    while(1) {
-        wait_time(TICK_INTERVAL*3);
-        printf("task2\n");
+    if (move_to_userspace(&user_task, get_current_task()) < 0) {
+        printf("Error while moving to userspace \n");
     }
 }
 
@@ -53,15 +54,14 @@ int main() {
     irq_vector_init();
     system_timer_init();
 
-    kernel_fork(&task1, (void*) 0);
-    kernel_fork(&task2, (void*) 0);
-
     printf("Enabling IRQs...\n");
     enable_interrupt_controller();
     irq_barrier();
     enable_irq();
     irq_barrier();
     
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, &kernel_task, 0, 0);
+
     while(1) {
         /* we're here forever */
         schedule();
