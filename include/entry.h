@@ -25,10 +25,12 @@
 #define ERROR_INVALID_EL0_32		15 
 #define SYNC_ERROR 16
 #define SYSCALL_ERROR 17
+#define DATA_ABORT_ERROR 18
 
 #define N_SYSCALLS 3
 
 #define ESR_EC_SHIFT 26
 #define ESR_EC_SVC64 0x15
+#define ESR_EC_DABT_LOW 0x24
 
 #endif

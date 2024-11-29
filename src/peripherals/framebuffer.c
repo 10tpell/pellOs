@@ -1,6 +1,7 @@
 #include "peripherals/framebuffer.h"
 #include "peripherals/mailbox.h"
 #include "peripherals/framebuffer_char.h"
+#include <mm/mm.h>
 
 unsigned int width, height, pitch, isrgb;
 unsigned char *fb;
@@ -69,7 +70,7 @@ void framebuffer_init()
     mbox[33] = 0; // Bytes per line
 
     mbox[34] = MBOX_TAG_LAST;
-
+    //TODO CHECK THE PTR HERE (PROBABLY WRONG / PHYSICAL)
     // Check call is successful and we have a pointer with depth 32
     if (mailbox_call(MBOX_CH_PROP) && mbox[20] == 32 && mbox[28] != 0) {
         mbox[28] &= 0x3FFFFFFF; // Convert GPU address to ARM address
@@ -77,7 +78,7 @@ void framebuffer_init()
         height = mbox[11];      // Actual physical height
         pitch = mbox[33];       // Number of bytes per line
         isrgb = mbox[24];       // Pixel order
-        fb = (unsigned char *)((long)mbox[28]);
+        fb = (unsigned char *)(((long)mbox[28]) | VIRTUAL_ADDRESS_START);
     }
 }
 

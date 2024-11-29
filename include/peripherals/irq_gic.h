@@ -8,7 +8,9 @@
 
 #define GIC_MAX_ISRS 256U
 
-#define IRQ_GIC_BASE_PERIPHERAL         0xFF840000U
+
+//#define IRQ_GIC_BASE_PERIPHERAL         0xFF840000U -> below is virtual adr
+#define IRQ_GIC_BASE_PERIPHERAL         0xffff00003F840000U
 // #define IRQ_GIC_BASE_PERIPHERAL         0x4c0040000U
 
 #define IRQ_GIC_DIST_OFFSET             0x1000U

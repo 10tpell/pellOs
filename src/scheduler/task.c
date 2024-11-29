@@ -1,5 +1,5 @@
 #include <scheduler/task.h>
-#include <mm.h>
+#include <mm/mm.h>
 #include <utils/memutils.h>
 
 task_pt_regs* get_task_pt_regs(task_struct* task)
@@ -8,18 +8,20 @@ task_pt_regs* get_task_pt_regs(task_struct* task)
     return (task_pt_regs *)ptr; 
 }
 
-sint8_t move_to_userspace(void* pc, task_struct* task)
+sint8_t move_to_userspace(void* start, uint64_t size, void* pc, task_struct* task)
 {
     task_pt_regs* regs = get_task_pt_regs(task);
-    memzero((void *) regs, sizeof(*regs));
     
     regs->pc = pc;
     regs->pstate = PSR_MODE_EL0t;
+    regs->sp = 2 * PAGE_SIZE; // for now program can only be one page long (second page is for stack)
 
-    uint64_t stack = (uint64_t) get_next_free_page();
-    if (!stack) return -1;
-    regs->sp = stack + PAGE_SIZE;
-    task->stack = stack;
+    /* reserve a page and populate page tables */
+    void* code_page = allocate_user_page(task, 0);
+    if(code_page == 0) return -1;
+
+    memcpy(code_page, start, size);
+    set_page_directory(task->mm.pagedirectory);
     
     return 0;
 }

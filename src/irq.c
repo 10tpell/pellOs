@@ -33,7 +33,8 @@ const char *entry_error_messages[] = {
 	"FIQ_INVALID_EL0_32",		
 	"ERROR_INVALID_EL0_32",
     "SYNC_ERROR",
-    "SYSCALL_ERROR"	
+    "SYSCALL_ERROR",
+    "DATA_ABORT_ERROR"
 };
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS

@@ -74,6 +74,7 @@
     add	sp, sp, #S_FRAME_SIZE		
 .endm
 
+#ifndef ASM_MACRO
 
 /*
  * Exception vectors.
@@ -123,7 +124,9 @@ error_invalid_el1h:
 	handle_invalid_exception 1, ERROR_INVALID_EL1h
 
 sync_invalid_el0_64:
-	handle_invalid_exception 0, SYNC_INVALID_EL0_64
+    /* handling exception by exiting thread */
+	mov x0, #5
+    bl syscall_exit
 
 irq_invalid_el0_64:
 	handle_invalid_exception 0, IRQ_INVALID_EL0_64
@@ -158,6 +161,8 @@ el0_sync:
     lsr x24, x25, #ESR_EC_SHIFT
     cmp x24, #ESR_EC_SVC64
     b.eq el0_sys_call
+    cmp x24, #ESR_EC_DABT_LOW
+    b.eq el0_da
     b sync_invalid_el0_64
 
 el0_sys_call:
@@ -172,6 +177,20 @@ el0_sys_call:
     blr x16
     b ret_from_syscall
 
+/* When accessing unmapped address */
+el0_da:
+    bl enable_irq
+    mrs x0, far_el1
+    mrs x1, esr_el1
+    bl do_mem_abort
+    cmp x0, 0
+    b.eq 1f
+    handle_invalid_exception 0, DATA_ABORT_ERROR
+1:
+    bl disable_irq
+    pop_regs 0
+    eret
+
 invalid_sys_call:
     handle_invalid_exception 0, SYSCALL_ERROR
 
@@ -183,3 +202,5 @@ ret_from_syscall:
 
 .globl err_hang
 err_hang: b err_hang
+
+#endif

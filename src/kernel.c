@@ -4,6 +4,7 @@
 #include <config.h>
 #include <scheduler/scheduler.h>
 #include <usr/usr_syscalls.h>
+#include <mm/mm.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -30,22 +31,34 @@ void putc(void* p, char c) {
 }
 
 void user_task() {
-    char test_buf[30];
-    memset(test_buf, 0, 30);
+    char test_buf[60];
+    memset(test_buf, 0, 60);
 
     tfp_sprintf(test_buf, "Inside userspace!!\n\r");
     call_syscall_write(test_buf);
+    tfp_sprintf(test_buf, "Testing exceptions by attempting to write to daif\n\r");
+    call_syscall_write(test_buf);
+    asm ("msr daifset, #2");
     call_syscall_exit(0);
 }
 
 void kernel_task() {
     printf("entering task2\n");
-    if (move_to_userspace(&user_task, get_current_task()) < 0) {
-        printf("Error while moving to userspace \n");
+    // if (move_to_userspace(&user_task, get_current_task()) < 0) {
+    //     printf("Error while moving to userspace \n");
+    // }
+}
+
+void kernel_task1() {
+    printf("Entering kernel loop");
+    while(1) {
+        printf("In task2");
+        wait_time(TICK_INTERVAL*10);
     }
 }
 
 int main() {
+    set_page_directory(0x0);
     framebuffer_init();
     uart_init();
     uart_transmitStr("Kernel booting...");
@@ -61,9 +74,12 @@ int main() {
     irq_barrier();
     
     kernel_fork(TASK_FLAGS_KERNEL_THREAD, &kernel_task, 0, 0);
+    void* newSp = get_next_free_page();
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, &kernel_task1, 0, 0);
 
     while(1) {
         /* we're here forever */
         schedule();
+        // printf("hello");
     }
 }

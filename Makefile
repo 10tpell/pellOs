@@ -1,7 +1,8 @@
 CFILES = 	$(wildcard src/*.c) \
 			$(wildcard src/peripherals/*.c) \
 			$(wildcard src/scheduler/*.c) \
-			$(wildcard src/utils/*.c)
+			$(wildcard src/utils/*.c) \
+			$(wildcard src/mm/*.c)
 ASMFILES = 	$(wildcard src/asm/*.S)
 
 OFILES = $(CFILES:%.c=build/%_c.o)
@@ -25,10 +26,10 @@ qemu:   OUTPUT_APPEND = qemu
 qemu:	all
 
 kernel8.img: $(OFILES)
-	$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES) -T link_$(OUTPUT_APPEND).ld -o bin/kernel8.elf
+	$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES) -T link_$(OUTPUT_APPEND).ld -o bin/kernel8.elf --verbose -Map=bin/kernel.map
 	$(GCCPATH)/aarch64-none-elf-objcopy -O binary bin/kernel8.elf bin/kernel8.img
 	/bin/cp bin/kernel8.img bin/kernel8_$(OUTPUT_APPEND).img
 
 clean:
 	/bin/rm bin/kernel8.elf *.o *.img > /dev/null 2> /dev/null || true
-	/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o > /dev/null 2> /dev/null || true
+	/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o build/src/mm/*.o > /dev/null 2> /dev/null || true

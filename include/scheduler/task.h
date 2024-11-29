@@ -1,6 +1,34 @@
 #ifndef __TASK_H__
 #define __TASK_H__
 
+
+#define TASK_FLAGS_KERNEL_THREAD 0x2
+#define MAX_PROCESS_PAGES 16
+
+/*
+ * PSR bits
+ */
+#define PSR_MODE_EL0t	0x00000000
+#define PSR_MODE_EL1t	0x00000004
+#define PSR_MODE_EL1h	0x00000005
+#define PSR_MODE_EL2t	0x00000008
+#define PSR_MODE_EL2h	0x00000009
+#define PSR_MODE_EL3t	0x0000000c
+#define PSR_MODE_EL3h	0x0000000d
+
+#define INIT_TASK { /*cpu context: */ {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},\
+                    /* state :*/ 0,\
+                    /* counter:*/ 0,\
+                    /* priority:*/ 1,\
+                    /* preempt_count:*/ 0,\
+                    /* stack:*/ 0,\
+                    /* flags:*/ TASK_FLAGS_KERNEL_THREAD, \
+                    /* mm:*/ {0, 0, {{0}}, 0, {0}} }
+
+#define THREAD_CPU_CONTEXT 0
+
+#define TASK_SIZE   4096
+
 #ifndef ASM
 
 #include <types.h>
@@ -45,6 +73,19 @@ typedef struct cpu_context_struct {
     // double d31;
 } cpu_context;
 
+typedef struct userpage_struct {
+    uint64_t physical_adr;
+    void* virtual_adr;
+} user_page;
+
+typedef struct mm_struct {
+    uint64_t pagedirectory;
+    sint32_t userpages_count;
+    user_page userpages[MAX_PROCESS_PAGES];
+    sint32_t kernelpages_count;
+    uint64_t kernelpages[MAX_PROCESS_PAGES];
+} mm_t;
+
 typedef struct task_struct_struct {
     cpu_context cpu_context;
     enum TaskState state;
@@ -53,6 +94,7 @@ typedef struct task_struct_struct {
     sint64_t preempt_count;
     uint64_t stack;
     uint64_t flags;
+    mm_t mm;
 } task_struct;
 
 typedef struct pt_regs_struct {
@@ -66,33 +108,8 @@ void ret_from_fork( void );
 void cpu_switch_to(void* prev, void* next);
 void end_of_sched( void );
 task_pt_regs* get_task_pt_regs(task_struct* task);
-sint8_t move_to_userspace(void* pc, task_struct* task);
+sint8_t move_to_userspace(void* start, uint64_t size, void* pc, task_struct* task);
 
 #endif /* ifdef ASM */
-
-#define TASK_FLAGS_KERNEL_THREAD 0x2
-
-/*
- * PSR bits
- */
-#define PSR_MODE_EL0t	0x00000000
-#define PSR_MODE_EL1t	0x00000004
-#define PSR_MODE_EL1h	0x00000005
-#define PSR_MODE_EL2t	0x00000008
-#define PSR_MODE_EL2h	0x00000009
-#define PSR_MODE_EL3t	0x0000000c
-#define PSR_MODE_EL3h	0x0000000d
-
-#define INIT_TASK { /*cpu context: */ {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},\
-                    /* state :*/ 0,\
-                    /* counter:*/ 0,\
-                    /* priority:*/ 1,\
-                    /* preempt_count:*/ 0,\
-                    /* stack:*/ 0,\
-                    /* flags:*/ TASK_FLAGS_KERNEL_THREAD }
-
-#define THREAD_CPU_CONTEXT 0
-
-#define TASK_SIZE   4096
 
 #endif

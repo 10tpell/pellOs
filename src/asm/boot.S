@@ -1,5 +1,11 @@
 #include "arm/regs.h"
+#include "arm/mmu.h"
 #include "config.h"
+
+#define ASM
+#include <mm/paging.h>
+#undef ASM
+
 .section ".text.boot"  // Make sure the linker puts this at the start of the kernel image
 
 .global _start  // Execution starts here
@@ -12,37 +18,57 @@ _start:
 1:  wfe
     b       1b
 2:  // We're on the main core!
-    // Clean the BSS section
-    ldr     x1, =__bss_start     // Start address
-    ldr     w2, =__bss_size      // Size of the section
-3:  cbz     w2, 4f               // Quit loop if zero
-    str     xzr, [x1], #8
-    sub     w2, w2, #1
-    cbnz    w2, 3b               // Loop if non-zero
-
+    
     // Check EL
-4:  bl      get_el
+    bl      get_el
     sub     x6, x0, #3
     ldr     x0, =EL2     
     cbz     x6, switch_to_el2    // Go to EL2 if in EL3
 EL2:
     bl      get_el
     sub     x6, x0, #2     
-    ldr     x0, =EL1      
+    adr     x0, #8 // TODO: explain
+//  ldr     x0, =main_entry      
     cbz     x6, switch_to_el1    // Go to EL1 if in EL3
-EL1:
-    bl      main_entry       // go to main 
     
+// TODO WILL CRASH HERE BECAUSE IT TRYS TO GO TO DIRECT ADDRESS OF MAIN_ENTRY (TRY HACKING THIS WITH PROGRAM COUNTER)
 main_entry:  
-    // Set stack to start below our code
-    ldr     x1, =0x400000
-    mov     sp, x1
+    /* Now create page tables */
+    bl __create_page_tables // will set x1 to ttbr1 and x0 to ttbr0
 
-    bl      main
-    // In case it does return, halt the master core too
-    b       1b
+    /* update ttbr1_el1 to point to PGD table */
+    // ldr x0, =pg_dir
+    msr ttbr1_el1, x1
+    msr ttbr0_el1, x1
 
-.section ".text"
+    /* update sp to point to virtual address */
+    mov x0, #VIRTUAL_ADDRESS_START
+    add sp, x0, #LOW_MEMORY
+
+    /* Configure Translation Control Register */
+    ldr x0, =(TCR_VALUE)
+    msr tcr_el1, x0
+
+    /* Configure mair register */
+    ldr x0, =(MAIR_VALUE)
+    msr mair_el1, x0
+
+    /* Enable MMU */
+    ldr x2, =main
+    mov x0, #SCTLR_MMU_ENABLED
+    msr sctlr_el1, x0
+
+    tlbi vmalle1is
+    dsb ish
+    isb
+
+    // Clean the BSS section (after MMU enabled because of kernel mapping)
+    ldr     x0, =__bss_start     // Start address
+    ldr     x1, =__bss_size      // Size of the section
+
+    bl memzero // b *0x8006c 
+
+    br x2
 
 .globl get_el
 get_el:

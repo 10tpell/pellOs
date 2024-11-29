@@ -1,4 +1,4 @@
-#include "mm.h"
+#include <mm/mm.h>
 #include <utils/printf.h>
 
 static char kernel_memmap[MM_NUM_OF_PAGES] = {0, };

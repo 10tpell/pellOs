@@ -1,5 +1,6 @@
 #include <scheduler/scheduler.h>
-#include <mm.h>
+#include <mm/mm.h>
+#include <mm/paging.h>
 #include <utils/printf.h>
 #include <utils/memutils.h>
 #include <arm/irq.h>
@@ -28,14 +29,16 @@ void preempt_enable()
 uint8_t kernel_fork(uint64_t clone_flags, void* fn, void* args, void* stack) {
     preempt_disable();
 
-    task_struct* new_task = (task_struct*) get_next_free_page();
+    task_struct* new_task; // = (task_struct*) get_next_free_page();
+
+    void* page = allocate_kernel_page();
+    new_task = (task_struct *) page;
+
     if (!new_task) 
         return 0xFF; /* couldn't get a free page */
 
     /* get location of pt_regs and zero them */
     task_pt_regs* child = get_task_pt_regs(new_task);
-    memzero(child, sizeof(task_pt_regs));
-    memzero(&(new_task->cpu_context), sizeof(cpu_context));
 
     /* handle kernel/user mode specific init for thread */
     if (clone_flags & TASK_FLAGS_KERNEL_THREAD) {
@@ -43,15 +46,9 @@ uint8_t kernel_fork(uint64_t clone_flags, void* fn, void* args, void* stack) {
         new_task->cpu_context.x20 = args;
     } else {
         task_pt_regs* cur_regs = get_task_pt_regs(current);
-        // *child = *cur_regs;
-        child->pc = cur_regs->pc;
-        child->pstate = cur_regs->pstate;
-        for (uint8_t i = 0; i < 31; i++) {
-            child->regs[i] = cur_regs->regs[i];
-        }
+        *child = *cur_regs;
         child->regs[0] = 0;
-        child->sp = stack + PAGE_SIZE;
-        new_task->stack = stack;
+        copy_virtual_memory(new_task);
     }
 
     /* copy values from current task */
@@ -70,12 +67,11 @@ uint8_t kernel_fork(uint64_t clone_flags, void* fn, void* args, void* stack) {
     #endif
 
     /* get pid of new_task process */
-    uint8_t pid = n_tasks;
+    uint8_t pid = n_tasks++;
     #if EXTRA_DEBUG == DEBUG_ON
     printf("task_array[%d] = 0x%08x;\n", pid, new_task);
     #endif
     task_array[pid] = new_task;
-    n_tasks++;
 
     preempt_enable();
 
