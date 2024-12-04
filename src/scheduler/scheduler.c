@@ -26,7 +26,7 @@ void preempt_enable()
     current->preempt_count--;
 }
 
-uint8_t kernel_fork(uint64_t clone_flags, void* fn, void* args, void* stack) {
+uint8_t kernel_fork(uint64_t clone_flags, uint64_t fn, uint64_t args) {
     preempt_disable();
 
     task_struct* new_task; // = (task_struct*) get_next_free_page();

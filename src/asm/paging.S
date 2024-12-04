@@ -128,7 +128,7 @@ __create_page_tables:
     mov x0, x25
     ret //b *0x841e4
 
-/* void set_page_directory(void* page_directory) */
+/* void set_page_directory(uint64_t page_directory) */
 .globl set_page_directory
 set_page_directory:
     msr ttbr0_el1, x0

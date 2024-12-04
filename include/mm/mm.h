@@ -7,7 +7,7 @@
 
 #include "types.h"
 
-void* get_next_free_page();
+uint64_t get_next_free_page();
 void free_page(uint32_t ptr);
 
 #endif
@@ -17,8 +17,9 @@ void free_page(uint32_t ptr);
 #define DEVICE_BASE_PHYS (0xFE000000U)
 #define BOOT_CODE_START 0x0
 #define VC_BASE_PHYS 0x3C000000
+#define PAGE_SHIFT 12
 
-#define PAGE_SIZE               (1 << 12)
+#define PAGE_SIZE               (1 << PAGE_SHIFT)
 
 #define MM_AVAILABLE_PAGE_MIN   (1 << 22)
 #define MM_AVAILABLE_PAGE_MAX   DEVICE_BASE_PHYS

@@ -162,9 +162,11 @@ void handle_irq(void)
 	}
 }
 
-void show_invalid_exception_message(int type, unsigned long esr, unsigned long address)
+void show_invalid_exception_message(int type, unsigned long esr, unsigned long address, unsigned long far)
 {
-	printf("%s, ESR: %x, address: %x\r\n", entry_error_messages[type], esr, address);
+	printf("%s, ESR: %x, address: %lx, far: %lx\r\n", entry_error_messages[type], esr, address, far);
+    //backup for lack of long support
+    printf("address_upper: %x , address_lower: %x\n", address >> 32, (address << 32) >> 32 );
 }
 
 #endif

@@ -8,11 +8,9 @@
 #define PHYSICAL_MEMORY_SIZE 0xFFFFFFFF	
 
 #define PAGE_MASK 0xfffffffffffff000
-#define PAGE_SHIFT 12
 #define TABLE_SHIFT 9
 #define SECTION_SHIFT (PAGE_SHIFT + TABLE_SHIFT)
 
-#define PAGE_SIZE (1 << PAGE_SHIFT)
 #define SECTION_SIZE (1 << SECTION_SHIFT)
 
 #define LOW_MEMORY (2* SECTION_SIZE)
@@ -30,6 +28,7 @@
 
 void* allocate_user_page(task_struct* task, void* virt_adr);
 void* allocate_kernel_page();
+void set_page_directory(uint64_t page_directory);
 sint8_t copy_virtual_memory(task_struct* task);
 
 #endif

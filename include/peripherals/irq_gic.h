@@ -138,6 +138,7 @@ void assignTargets(uint32_t isrId, uint32_t targetId);
 void setup_gic();
 void gic_debug_print();
 void gic_debug_print_for_irq(uint32_t irqId);
+void enable_interrupt_controller();
 
 #endif
 

@@ -5,6 +5,7 @@
     mov	x0, #\type
     mrs	x1, esr_el1
     mrs	x2, elr_el1
+    mrs x3, far_el1
     bl	show_invalid_exception_message
     b	err_hang
 .endm
@@ -93,7 +94,7 @@ vectors:
 	vtable_entry	error_invalid_el1h			// Error EL1h
 
 	vtable_entry	el0_sync			        // Synchronous 64-bit EL0
-	vtable_entry	irq_invalid_el0_64			// IRQ 64-bit EL0
+	vtable_entry	el0_irq         			// IRQ 64-bit EL0
 	vtable_entry	fiq_invalid_el0_64			// FIQ 64-bit EL0
 	vtable_entry	error_invalid_el0_64			// Error 64-bit EL0
 
@@ -128,9 +129,6 @@ sync_invalid_el0_64:
 	mov x0, #5
     bl syscall_exit
 
-irq_invalid_el0_64:
-	handle_invalid_exception 0, IRQ_INVALID_EL0_64
-
 fiq_invalid_el0_64:
 	handle_invalid_exception 0, FIQ_INVALID_EL0_64
 
@@ -153,6 +151,12 @@ el1_irq:
 	push_regs 1
 	bl	handle_irq
 	pop_regs 1
+    eret
+
+el0_irq:
+    push_regs 0
+    bl handle_irq
+    pop_regs 0
     eret
 
 el0_sync:

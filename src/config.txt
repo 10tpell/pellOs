@@ -1,0 +1,17 @@
+arm_64bit=1
+enable_gic=1
+armstub=armstub8-gic.bin
+
+gpio=22-27=np
+enable_jtag_gpio=1
+
+hdmi_force_hotplug=1
+hdmi_group=1
+hdmi_mode=16
+boot_delay=2
+
+uart_2ndstage=1
+BOOT_UART=1
+core_freq_min=500
+enable_uart=1
+dtoverlay=miniuart-bt

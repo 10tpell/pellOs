@@ -108,7 +108,7 @@ void ret_from_fork( void );
 void cpu_switch_to(void* prev, void* next);
 void end_of_sched( void );
 task_pt_regs* get_task_pt_regs(task_struct* task);
-sint8_t move_to_userspace(void* start, uint64_t size, void* pc, task_struct* task);
+sint8_t move_to_userspace(void* start, uint64_t size, uint64_t pc, task_struct* task);
 
 #endif /* ifdef ASM */
 

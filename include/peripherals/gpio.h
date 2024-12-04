@@ -72,26 +72,26 @@
 #define GPIO_GPAFEN1_ADDR       GPIO_BASE_PERIPHERAL + GPIO_GPAFEN1_OFFSET
 
 #define GPIO_PUP_PDN_CNTRL_REG0_OFFSET  0xE4U
-#define GPIO_PUP_PDN_CNTRL_REG0_ADDR    GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG0_OFFSET
+#define GPIO_PUP_PDN_CNTRL_REG0_ADDR    (GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG0_OFFSET)
 #define GPIO_PUP_PDN_CNTRL_REG1_OFFSET  0xE8U
-#define GPIO_PUP_PDN_CNTRL_REG1_ADDR    GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG1_OFFSET
+#define GPIO_PUP_PDN_CNTRL_REG1_ADDR    (GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG1_OFFSET)
 #define GPIO_PUP_PDN_CNTRL_REG2_OFFSET  0xECU
-#define GPIO_PUP_PDN_CNTRL_REG2_ADDR    GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG2_OFFSET
+#define GPIO_PUP_PDN_CNTRL_REG2_ADDR    (GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG2_OFFSET)
 #define GPIO_PUP_PDN_CNTRL_REG3_OFFSET  0xF0U
-#define GPIO_PUP_PDN_CNTRL_REG3_ADDR    GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG3_OFFSET
+#define GPIO_PUP_PDN_CNTRL_REG3_ADDR    (GPIO_BASE_PERIPHERAL + GPIO_PUP_PDN_CNTRL_REG3_OFFSET)
 
 
-#define GPIO_PUP_PDN_PULL_NONE          0x00U
-#define GPIO_FUNC_INPUT                 0b000
-#define GPIO_FUNC_OUTPUT                0b001
-#define GPIO_FUNC_ALT_0                 0b100
-#define GPIO_FUNC_ALT_1                 0b101
-#define GPIO_FUNC_ALT_2                 0b110
-#define GPIO_FUNC_ALT_3                 0b111
-#define GPIO_FUNC_ALT_4                 0b011
-#define GPIO_FUNC_ALT_5                 0b010
+#define GPIO_PUP_PDN_PULL_NONE          0// 0x00U
+#define GPIO_FUNC_INPUT                 0// 0b000
+#define GPIO_FUNC_OUTPUT                1// 0b001
+#define GPIO_FUNC_ALT_0                 4// 0b100
+#define GPIO_FUNC_ALT_1                 5// 0b101
+#define GPIO_FUNC_ALT_2                 6// 0b110
+#define GPIO_FUNC_ALT_3                 7// 0b111
+#define GPIO_FUNC_ALT_4                 3// 0b011
+#define GPIO_FUNC_ALT_5                 2// 0b010
 
-inline uint32_t gpio_writeReg(uint32_t* base, uint32_t pin, uint32_t value, uint8_t fieldSize) {
+static inline uint32_t gpio_writeReg(uint32_t* base, uint32_t pin, uint32_t value, uint8_t fieldSize) {
     if (GPIO_MAX_PIN < pin) return 0;
 
     uint32_t fieldMax = (1 << fieldSize) - 1; // mask of 1s for length of field (maximum value field in reg can be)
@@ -99,29 +99,29 @@ inline uint32_t gpio_writeReg(uint32_t* base, uint32_t pin, uint32_t value, uint
 
     uint8_t numFields = 32 / fieldSize;
     uint8_t shift = (pin % numFields) * fieldSize;
-    uint64_t regAddr = base + (pin / numFields) * 4;
+    uint64_t regAddr = (uint64_t) base + (pin / numFields) * 4;
 
-    uint32_t currVal = reg_read(regAddr);
+    uint32_t currVal = reg_read((uint32_t*) regAddr);
     currVal &= ~(fieldMax << shift);
     currVal |= (value << shift);
     
-    reg_write(regAddr, currVal);
+    reg_write((uint32_t *) regAddr, currVal);
     return 1;
 }
 
-inline uint32_t gpio_set(uint32_t pin) { return gpio_writeReg(GPIO_GPSET0_ADDR, pin, 1, 1); }
-inline uint32_t gpio_clear(uint32_t pin) { return gpio_writeReg(GPIO_GPCLR0_ADDR, pin, 0, 1); }
-inline uint32_t gpio_function(uint32_t pin, uint8_t func) { return gpio_writeReg(GPIO_GPFSEL0_ADDR, pin, func, 3); }
-inline uint32_t gpio_pullUpDown(uint32_t pin, uint32_t val) { return gpio_writeReg(GPIO_PUP_PDN_CNTRL_REG0_ADDR, pin, val, 1); }
+static inline uint32_t gpio_set(uint32_t pin) { return gpio_writeReg((uint32_t*) (GPIO_GPSET0_ADDR), pin, 1, 1); }
+static inline uint32_t gpio_clear(uint32_t pin) { return gpio_writeReg((uint32_t*) (GPIO_GPCLR0_ADDR), pin, 0, 1); }
+static inline uint32_t gpio_function(uint32_t pin, uint8_t func) { return gpio_writeReg((uint32_t*) (GPIO_GPFSEL0_ADDR), pin, func, 3); }
+static inline uint32_t gpio_pullUpDown(uint32_t pin, uint32_t val) { return gpio_writeReg((uint32_t*) (GPIO_PUP_PDN_CNTRL_REG0_ADDR), pin, val, 1); }
 
-inline uint32_t gpio_useAlt(uint32_t pin, uint32_t alt) {
+static inline uint32_t gpio_useAlt(uint32_t pin, uint32_t alt) {
     if (gpio_pullUpDown(pin, GPIO_PUP_PDN_PULL_NONE)) {
         return gpio_function(pin, alt);
     }
     return 0;
 }
 
-inline uint32_t gpio_writePin(uint32_t pin, uint8_t value) { 
+static inline uint32_t gpio_writePin(uint32_t pin, uint8_t value) { 
     if (value > 0) return gpio_set(pin);
     else return gpio_clear(pin);
 }

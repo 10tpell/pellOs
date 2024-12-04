@@ -1,14 +1,16 @@
 #include <scheduler/task.h>
 #include <mm/mm.h>
+#include <mm/paging.h>
 #include <utils/memutils.h>
+#include <utils/printf.h>
 
 task_pt_regs* get_task_pt_regs(task_struct* task)
 {
-    uint64_t* ptr = (uint64_t *)task + TASK_SIZE - sizeof(task_struct);
+    uint64_t ptr = ((uint64_t) task) + TASK_SIZE - sizeof(task_struct);
     return (task_pt_regs *)ptr; 
 }
 
-sint8_t move_to_userspace(void* start, uint64_t size, void* pc, task_struct* task)
+sint8_t move_to_userspace(void* start, uint64_t size, uint64_t pc, task_struct* task)
 {
     task_pt_regs* regs = get_task_pt_regs(task);
     
@@ -21,7 +23,8 @@ sint8_t move_to_userspace(void* start, uint64_t size, void* pc, task_struct* tas
     if(code_page == 0) return -1;
 
     memcpy(code_page, start, size);
+    printf("Setting page directory: 0x%08x%08x\n", task->mm.pagedirectory >> 32, ((task->mm.pagedirectory << 32) >> 32));
     set_page_directory(task->mm.pagedirectory);
-    
+    printf("pgd set\n");
     return 0;
 }

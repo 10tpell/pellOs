@@ -12,3 +12,9 @@ memzero:
 	subs x1, x1, #8
 	b.gt memzero
 	ret
+
+.globl memset
+memset:
+    str x1, [x0], #8
+    subs x2, x2, #8
+    b.gt memset
