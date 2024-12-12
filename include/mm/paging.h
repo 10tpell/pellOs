@@ -5,16 +5,10 @@
 #include <scheduler/task.h>
 #include <mm/mm.h>
 
-#define PHYSICAL_MEMORY_SIZE 0xFFFFFFFF	
-
 #define PAGE_MASK 0xfffffffffffff000
 #define TABLE_SHIFT 9
 #define SECTION_SHIFT (PAGE_SHIFT + TABLE_SHIFT)
-
 #define SECTION_SIZE (1 << SECTION_SHIFT)
-
-#define LOW_MEMORY (2* SECTION_SIZE)
-#define HIGH_MEMORY DEVICE_BASE
 
 #define PTRS_PER_TABLE (1 << TABLE_SHIFT)
 

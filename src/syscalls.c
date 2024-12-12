@@ -31,3 +31,4 @@ uint64_t syscall_read(uint64_t deviceId) {
 }
 
 uint64_t (*sys_call_table[]) (uint64_t) = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read};
+

@@ -88,7 +88,6 @@ sint8_t copy_virtual_memory(task_struct* task) {
     return 0;
 }
 
-static sint8_t ind = 1;
 sint8_t do_mem_abort(void* addr, uint64_t esr) {
     uint64_t dfs = esr & 63; //0b111111
     printf("do_mem_abort\n");
@@ -98,10 +97,7 @@ sint8_t do_mem_abort(void* addr, uint64_t esr) {
 
         printf("about to call map_page();\n");
         map_page(get_current_task(), (void*) (((uint64_t) addr) & PAGE_MASK), page);
-        ind++;
-
-        if (ind > 2) return -1;
-        
+                
         return 0;
     }
     return -1;

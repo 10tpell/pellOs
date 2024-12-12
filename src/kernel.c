@@ -6,6 +6,7 @@
 #include <usr/programs.h>
 #include <mm/mm.h>
 #include <mm/paging.h>
+#include <lib/kmalloc.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -70,6 +71,32 @@ int main() {
     
     kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task, 0);
     kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task1, 0);
+
+    printf("allocating kernel heap...\n");
+    uint64_t kernel_heap_phys = get_next_free_page();
+
+    for(uint8_t i = 0; i < KERNEL_HEAP_SIZE_PAGES-1; i++) {
+        get_next_free_page();
+    }
+
+    void* heap_ptr = (void *) (kernel_heap_phys + VIRTUAL_ADDRESS_START);
+
+    /* kmalloc test */
+    kmalloc_init(heap_ptr);
+
+    uint64_t* ptr64 = (uint64_t *) kmalloc(sizeof(uint64_t));
+    uint32_t* ptr32 = (uint32_t *) kmalloc(sizeof(uint32_t));
+    uint32_t* ptr32_2 = (uint32_t *) kmalloc(sizeof(uint32_t));
+    uint64_t* ptr64_2 = (uint64_t *) kmalloc(sizeof(uint64_t));
+
+    printf("ptr32_adr: 0x%x, value: 0x%x\n", ptr32, *ptr32);
+    kfree(ptr32);
+    printf("free1\n");
+    kfree(ptr32_2);
+    printf("free2\n");
+    uint64_t* ptr_64_3 = (uint64_t *) kmalloc(sizeof(uint64_t));
+    printf("ptr64_3_adr: 0x%x\n", ptr_64_3);
+
 
     while(1) {
         /* we're here forever */

@@ -29,7 +29,7 @@ void preempt_enable()
 uint8_t kernel_fork(uint64_t clone_flags, uint64_t fn, uint64_t args) {
     preempt_disable();
 
-    task_struct* new_task; // = (task_struct*) get_next_free_page();
+    task_struct* new_task;
 
     void* page = allocate_kernel_page();
     new_task = (task_struct *) page;

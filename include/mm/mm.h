@@ -8,9 +8,11 @@
 #include "types.h"
 
 uint64_t get_next_free_page();
-void free_page(uint32_t ptr);
+void free_page(uint64_t ptr);
 
 #endif
+
+#define PHYSICAL_MEMORY_SIZE 0xFFFFFFFF	
 
 #define DEVICE_BASE PERIPHERAL_BASE_ADDR
 #define VIRTUAL_ADDRESS_START 0xffff000000000000
@@ -18,6 +20,9 @@ void free_page(uint32_t ptr);
 #define BOOT_CODE_START 0x0
 #define VC_BASE_PHYS 0x3C000000
 #define PAGE_SHIFT 12
+
+#define LOW_MEMORY (2* SECTION_SIZE)
+#define HIGH_MEMORY VC_BASE_PHYS
 
 #define PAGE_SIZE               (1 << PAGE_SHIFT)
 

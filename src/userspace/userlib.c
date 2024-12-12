@@ -28,13 +28,12 @@ memzero:
 #define SYSTEM_TIMER_DEVICE_ID 0
 
 
-static uint8_t hasRead = 0;
+/*
+block on task for a set amount of time:
+* delay_ms: time in us to wait
+*/
 void delay(uint32_t delay_ms) {
     uint32_t currentTime = call_syscall_read(SYSTEM_TIMER_DEVICE_ID);
-	if(!hasRead) {
-		call_syscall_write("one read");
-		hasRead = 1;
-	}
     uint64_t targetTime = currentTime + delay_ms;
 	while(currentTime < targetTime) {
 		currentTime = call_syscall_read(SYSTEM_TIMER_DEVICE_ID);
