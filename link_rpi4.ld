@@ -8,10 +8,10 @@ SECTIONS
     /* userspace while we don't have an ELF loader */
     . = ALIGN (0x1000);
     user_begin = .;
-    .text.user : { build/user* (.text) }
-    .rodata.user : { build/user* (.rodata) }
-    .data.user : { build/user* (.data) }
-    .bss.user : { build/user* (.bss) }
+    .text.user : { * (.text.user) }
+    .rodata.user : { build/src/userspace* (.rodata) }
+    .data.user : { build/src/userspace* (.data) }
+    .bss.user : { build/src/userspace* (.bss) }
     user_end = .;
 
     .text : { *(.text .text.* .gnu.linkonce.t*) }
