@@ -1,16 +1,16 @@
 # PellOS
 
 ## TODO
-- [] Basic initrd (`in progress`)
+- [ ] Basic initrd (`in progress`)
   - [x] reading from files in kernel
-  - [] syscall support to read files from userspace
-- [] executable loading
-  - [] kernel module loading
-  - [] userspace executable loading
-    - [] userspace library
-- [] kmalloc cleanup
-  - [] look into alignment
-  - [] clean up logic (it's messy in there)
+  - [ ] syscall support to read files from userspace
+- [ ] executable loading
+  - [ ] kernel module loading
+  - [ ] userspace executable loading
+    - [ ] userspace library
+- [ ] kmalloc cleanup
+  - [ ] look into alignment
+  - [ ] clean up logic (it's messy in there)
 
 
 ## Current issues
