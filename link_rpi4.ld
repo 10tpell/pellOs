@@ -1,10 +1,8 @@
 SECTIONS
 {
-    /*. = 0x80000;  Kernel load address for AArch64 */  
-    
-
-    . = 0xffff000000080000;   
+    . = 0xffff000000080000;                             /* virtual address for kernel */
     .text.boot : { *(.text.boot) }
+
     /* userspace while we don't have an ELF loader */
     . = ALIGN (0x1000);
     user_begin = .;
@@ -14,10 +12,20 @@ SECTIONS
     .bss.user : { build/src/userspace* (.bss) }
     user_end = .;
 
+    /* kernel code */
     .text : { *(.text .text.* .gnu.linkonce.t*) }
+
+    /* kernel data */
     .rodata : { *(.rodata .rodata.* .gnu.linkonce.r*) }
     PROVIDE(_data = .);
-    .data : { *(.data .data.* .gnu.linkonce.d*) }
+    .data : { 
+        *(.data .data.* .gnu.linkonce.d*) 
+        /* ramdisk */
+        __ramdisk_start = .;
+        *(.ramdisk)
+        __ramdisk_end = .;
+    }
+
     . = ALIGN(0x8);
 	__bss_start = .;
 	.bss : { *(.bss*) } 

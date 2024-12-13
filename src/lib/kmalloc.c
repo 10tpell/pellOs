@@ -57,6 +57,7 @@ void* kmalloc(uint64_t size) {
 }
 
 void kfree(void* ptr) {
+    if (!ptr) return;
     uint64_t header_adr = (uint64_t) ptr - KERNEL_MALLOC_SIZE_SIZE;
     uint64_t* header_start = (uint64_t *) header_adr;
     uint64_t size = *header_start + KERNEL_MALLOC_HEADER_SIZE;

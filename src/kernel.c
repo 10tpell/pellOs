@@ -7,6 +7,7 @@
 #include <mm/mm.h>
 #include <mm/paging.h>
 #include <lib/kmalloc.h>
+#include <fs/rdfs/rdfs.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -84,19 +85,25 @@ int main() {
     /* kmalloc test */
     kmalloc_init(heap_ptr);
 
-    uint64_t* ptr64 = (uint64_t *) kmalloc(sizeof(uint64_t));
-    uint32_t* ptr32 = (uint32_t *) kmalloc(sizeof(uint32_t));
-    uint32_t* ptr32_2 = (uint32_t *) kmalloc(sizeof(uint32_t));
-    uint64_t* ptr64_2 = (uint64_t *) kmalloc(sizeof(uint64_t));
+    rdfs_init(&__ramdisk_start);
 
-    printf("ptr32_adr: 0x%x, value: 0x%x\n", ptr32, *ptr32);
-    kfree(ptr32);
-    printf("free1\n");
-    kfree(ptr32_2);
-    printf("free2\n");
-    uint64_t* ptr_64_3 = (uint64_t *) kmalloc(sizeof(uint64_t));
-    printf("ptr64_3_adr: 0x%x\n", ptr_64_3);
+    uint64_t list_len = 0;
+    uint64_t* list = (uint64_t *) rdfs_readdir("/config/config.txt", &list_len);
+    if(!list) {
+        printf("Failed to read directory.\n");
+    } else {
+        printf("list_len: %d, list[0]: %d\n", list_len, list[0]);
+        kfree(list);
+    }
 
+    list = (uint64_t *) 0;
+    list = rdfs_readdir("/config/", &list_len);
+    if(!list) {
+        printf("Failed to read directory.\n");
+    } else {
+        printf("list_len: %d, list[0]: %d\n", list_len, list[0]);
+        kfree(list);
+    }
 
     while(1) {
         /* we're here forever */

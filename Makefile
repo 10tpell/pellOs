@@ -4,7 +4,9 @@ CFILES = 	$(wildcard src/*.c) \
 			$(wildcard src/utils/*.c) \
 			$(wildcard src/mm/*.c) \
 			$(wildcard src/userspace/*.c) \
-			$(wildcard src/lib/*.c)
+			$(wildcard src/lib/*.c) \
+			$(wildcard src/fs/*.c) \
+			$(wildcard src/fs/*/*.c)
 ASMFILES = 	$(wildcard src/asm/*.S)
 
 OFILES = $(CFILES:%.c=build/%_c.o)
@@ -34,4 +36,4 @@ kernel8.img: $(OFILES)
 
 clean:
 	/bin/rm bin/kernel8.elf *.o *.img > /dev/null 2> /dev/null || true
-	/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o build/src/mm/*.o build/src/userspace/*.o build/src/lib/*.o > /dev/null 2> /dev/null || true
+	/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o build/src/mm/*.o build/src/userspace/*.o build/src/lib/*.o build/src/fs/*.o build/src/fs/*/*.o > /dev/null 2> /dev/null || true
