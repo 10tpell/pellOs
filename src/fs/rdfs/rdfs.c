@@ -3,6 +3,7 @@
 #include <lib/kmalloc.h>
 #include <utils/memutils.h>
 #include <utils/printf.h>
+#include <fs/file.h>
 
 static rdfs_partition_header_t* rdfs_start = (rdfs_partition_header_t *) 0;
 static rdfs_file_dir_entry_t* first_file = (rdfs_file_dir_entry_t *) 0;
@@ -10,10 +11,6 @@ static uint64_t numFiles = 0;
 
 sint8_t rdfs_init(void* initial_offset) {
     if (!initial_offset) return -1;
-
-    volatile rdfs_partition_header_t test_one = {
-        RDFS_MAGIC_NUMBER, 0xffff, "ramdisk", 445, 53
-    };
 
     rdfs_start = (rdfs_partition_header_t *) initial_offset;
     if (rdfs_start->magic_number != RDFS_MAGIC_NUMBER) return -1;
@@ -23,13 +20,14 @@ sint8_t rdfs_init(void* initial_offset) {
     return 0;
 }
 
+#define DATA_LOCATION(f) ((void *) ((uint64_t) rdfs_start + rdfs_start->file_directory_size + f->data_block_offset + sizeof(rdfs_partition_header_t)))
 
 uint64_t* rdfs_get_file_list_from_dir_id(uint64_t curr_dir_id, uint64_t* list_size) {
     rdfs_file_dir_entry_t* file = &first_file[curr_dir_id];
     *list_size = file->data_entry_size / sizeof(uint64_t);
     
     uint64_t* file_list = (uint64_t *) kmalloc(*list_size * sizeof(uint64_t));
-    uint64_t* file_ids = (uint64_t *) ((uint64_t) rdfs_start + rdfs_start->file_directory_size + file->data_block_offset + sizeof(rdfs_partition_header_t)); // Get location of first id in data block
+    uint64_t* file_ids = DATA_LOCATION(file); // Get location of first id in data block
     for (uint64_t i = 0; i < *list_size; i++) {
         file_list[i] = file_ids[i];
     }
@@ -45,6 +43,7 @@ sint8_t rdfs_get_file_id_from_list_and_name(uint64_t* file_list, uint64_t size, 
     }
     return -1;
 }
+
 /*
 // path = "/.../.../.../filename" (filename could be a dir or file)
 get_id_from_path(path)
@@ -126,6 +125,43 @@ uint64_t* rdfs_readdir(const char* path, uint64_t* list_size) {
 sint8_t rdfs_filename_from_id(uint64_t fileid, char* filepath) {
     if(first_file[fileid].file_id != fileid) return -1;
     
+    strcpy(filepath, first_file[fileid].filename);
     filepath = first_file[fileid].filename;
     return 0;
+}
+
+sint8_t rdfs_open_file_id(uint64_t file_id, uint64_t flags, file_t* file) {
+    if (!file) return -1;
+
+    file->file_id = file_id;
+    file->index = 0;
+    file->flags = flags;
+    return 0;
+}
+
+sint8_t rdfs_open_file(const char* path, uint64_t flags, file_t* file) {
+    if (!file) return -1;
+
+    uint64_t id = 0;
+    
+    if (rdfs_file_get_id_from_path(path, &id) < 0) return -1;
+    return rdfs_open_file_id(id, flags, file);
+}
+
+uint64_t rdfs_read_file(file_t* file, uint8_t* buf, uint64_t size) {
+    rdfs_file_dir_entry_t* file_dir_entry = &first_file[file->file_id];
+
+    uint8_t* data_ptr = DATA_LOCATION(file_dir_entry);
+
+    uint64_t total_remaining = file_dir_entry->data_entry_size - file->index; 
+
+    if (total_remaining == 0) return 0;
+
+    if (size > total_remaining) {
+        size = total_remaining;
+    }
+
+    memcpy(buf, data_ptr + file->index, size);
+    file->index += size;
+    return size;
 }

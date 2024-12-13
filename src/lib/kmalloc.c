@@ -2,6 +2,9 @@
 #include <utils/memutils.h>
 #include <utils/printf.h>
 
+// #define ISALIGNED(mem, size) ((mem % size) == 0)
+// #define ALIGN(ptr, alignment) ((uint64_t) ptr + ((uint64_t) ptr % alignment))
+
 static free_mem_header_t* first_free;
 static void* heap_start_ptr;
 static uint64_t heap_start_adr;
@@ -23,27 +26,93 @@ void* kmalloc(uint64_t size) {
     uint64_t alloc_size = size + KERNEL_MALLOC_HEADER_SIZE;
 
     free_mem_header_t* free_block = first_free;
+
+    if (!first_free) return (void *) 0; 
     do {
         if(free_block->size >= alloc_size) {
-            free_mem_header_t prev_free_block = *free_block;
             uint64_t* new_ptr = (uint64_t *) free_block;
+
+            // /* align to 8 bytes*/
+            // new_ptr = ALIGN(new_ptr, 8);
+
+            // /* Check if we can fit newly aligned block into this free block */
+            // if ((uint64_t) new_ptr + size > ((uint64_t) free_block + free_block->size)) continue;
+
+            /*
+            Possible options
+            |---free_block---|
+            |---free_block---|---???---|
+            |---???---|---free_block---|
+            */
+           
+            free_mem_header_t prev_free_block = *free_block;
             free_block = (free_mem_header_t *)(((uint64_t) free_block) + alloc_size);
+            /* only block */
+            if (prev_free_block.prev == START_OF_HEAP && prev_free_block.next == END_OF_HEAP) {
+                if(prev_free_block.size - alloc_size == 0) {
+                    /* will mean that there is no free space left in heap */
+                    first_free = (free_mem_header_t *) 0;
+                } else {
+                    /* Fill in new free zone block */
+                    free_block->prev = START_OF_HEAP;
+                    free_block->next = END_OF_HEAP;
+                    free_block->size = prev_free_block.size - alloc_size;
 
-            /* Fill in new free zone block */
-            free_block->prev = prev_free_block.prev;
-            free_block->next = prev_free_block.next;
-            free_block->size = prev_free_block.size - alloc_size;
+                    /* Update first_free if we need to (we need to keep track of where our linked list starts) */
+                    first_free = free_block;
+                }
+            }
 
+            /* first free block (and there is a block after) */
+            else if (free_block->prev == START_OF_HEAP) {
+                if(prev_free_block.size - alloc_size == 0) {
+                    /* This free block will no longer exist */
+                    prev_free_block.next->prev = START_OF_HEAP;
+                    first_free = prev_free_block.next;
+                } else {
+                    /* Fill in new free zone block */
+                    free_block->next = prev_free_block.next;
+                    free_block->next->prev = free_block;
+                    free_block->size = prev_free_block.size - alloc_size;
+                    free_block->prev = START_OF_HEAP;
+                    
+                    /* Update first_free if we need to (we need to keep track of where our linked list starts) */
+                    first_free = free_block;
+                }
+            } 
+
+            /* last block (there is a block before) */
+            else if (free_block->next == END_OF_HEAP) {
+                if(prev_free_block.size - alloc_size == 0) {
+                    prev_free_block.prev->next = END_OF_HEAP; 
+                } else {
+                    free_block->prev = prev_free_block.prev;
+                    free_block->prev->next = free_block;
+                    free_block->size = prev_free_block.size - alloc_size;
+                    free_block->next = END_OF_HEAP;
+                }
+            }
+
+            /* There are free blocks before and after */
+            else {
+                if(prev_free_block.size - alloc_size == 0) {
+                    prev_free_block.prev->next = prev_free_block.next;
+                    prev_free_block.next->prev = prev_free_block.prev;
+                } else {
+                    free_block->prev = prev_free_block.prev;
+                    free_block->prev->next = free_block;
+
+                    free_block->next = prev_free_block.next;
+                    free_block->next->prev = free_block;
+
+                    free_block->size = prev_free_block.size - alloc_size;
+                }
+            }
             /* add size to beginning of new ptr so free knows how big this block is */
             *new_ptr = size;
 
             /* move ptr along by sizeof(size) so that we return variable to assign */
             new_ptr = (uint64_t *) ((uint64_t) new_ptr + sizeof(size));
-
-            /* Update first_free if we need to (we need to keep track of where our linked list starts) */
-            if (free_block->prev == START_OF_HEAP) {
-                first_free = free_block;
-            }
 
             #if EXTRA_DEBUG == DEBUG_ON
             printf("KMALLOC: 0x%08x%08x, size: 0x%08xB\n", (uint64_t) new_ptr >> 32, ((uint64_t) new_ptr << 32) >> 32, size);
@@ -64,7 +133,6 @@ void kfree(void* ptr) {
     free_mem_header_t* free_block = first_free;
 
     uint8_t found = 0;
-
     if (free_block->next == END_OF_HEAP && free_block->prev == START_OF_HEAP) {
         found = 1;
     } else {
@@ -107,7 +175,7 @@ void kfree(void* ptr) {
         // |---???---|---header_start---|---???---|---free_block---|
         uint64_t free_block_adr = (uint64_t) free_block;
 
-        uint8_t is_contig_with_free_block = (header_adr + size == free_block_adr - 1);
+        uint8_t is_contig_with_free_block = (header_adr + size == free_block_adr);
 
         /* This allocated block is directly before first_free (logic is same whether it's the first allocated block or not) */
         if (is_contig_with_free_block) {

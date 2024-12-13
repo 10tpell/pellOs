@@ -8,6 +8,7 @@
 #include <mm/paging.h>
 #include <lib/kmalloc.h>
 #include <fs/rdfs/rdfs.h>
+#include <fs/file.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -104,6 +105,15 @@ int main() {
         printf("list_len: %d, list[0]: %d\n", list_len, list[0]);
         kfree(list);
     }
+
+    file_t f = {0};
+    if (rdfs_open_file("/config/config.txt", 0, &f) >= 0) {
+        unsigned char* buf = (unsigned char *) kmalloc(1 * sizeof(char));
+        while(rdfs_read_file(&f, buf, 1)) {
+            printf("%c", *buf);
+        }
+    }
+
 
     while(1) {
         /* we're here forever */

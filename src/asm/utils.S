@@ -27,6 +27,15 @@ memcpy_u8:
 	b.gt memcpy_u8
 	ret
 
+.globl strcpy
+strcpy:
+	ldr w2, [x1], #1
+	str w2, [x0], #1
+
+	cmp w2, wzr
+	b.gt strcpy
+	ret
+
 .globl memzero
 memzero:
 	str xzr, [x0], #8

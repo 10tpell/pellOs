@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <fs/stat.h>
+#include <fs/file.h>
 
 /*
 ========================================== RamDiskFileSystem ================================================
@@ -73,5 +74,11 @@ list_list: pointer to a uint64_t, will be modified to contain size of list
 */
 uint64_t* rdfs_readdir(const char* path, uint64_t* list_size);
 
+sint8_t rdfs_open_file(const char* path, uint64_t flags, file_t* file);
+sint8_t rdfs_open_file_id(uint64_t file_id, uint64_t flags, file_t* file);
+
+uint64_t rdfs_read_file(file_t* file, uint8_t* buf, uint64_t size);
+
 extern void* __ramdisk_start;
+
 #endif

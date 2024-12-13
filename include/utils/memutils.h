@@ -10,5 +10,6 @@ void memcpy_u8(uint8_t* dest, uint8_t* src, uint64_t size);
 void memcpy(uint8_t* dest, uint8_t* src, uint64_t size);
 
 sint8_t strcmp(const char* a, const char* b);
+void strcpy(const char* dest, const char* src);
 
 #endif
