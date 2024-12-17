@@ -16,6 +16,7 @@ void scheduler_tick();
 void schedule();
 uint64_t get_current_task_preempt();
 task_struct* get_current_task();
+uint8_t get_pid();
 
 /* comes from linker */
 extern void* user_begin;

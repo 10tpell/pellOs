@@ -27,7 +27,7 @@
 #define SYSCALL_ERROR 17
 #define DATA_ABORT_ERROR 18
 
-#define N_SYSCALLS 4
+#define N_SYSCALLS 5
 
 #define ESR_EC_SHIFT 26
 #define ESR_EC_SVC64 0x15

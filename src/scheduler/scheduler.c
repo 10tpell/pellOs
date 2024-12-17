@@ -57,6 +57,11 @@ uint8_t kernel_fork(uint64_t clone_flags, uint64_t fn, uint64_t args) {
     new_task->priority = current->priority;
     new_task->counter = new_task->priority;
     new_task->state = TASK_STATE_RUNNING;
+
+    // for now we don't want to copy fd_table (this needs to be changed)
+    // TODO: copy fd table and copy fd list across as well
+    new_task->fd_table.count = 0;
+    new_task->fd_table.file = (file_t *) 0;
     
     /* set registers for new process */
     new_task->cpu_context.pc = (uint64_t) ret_from_fork;
@@ -155,15 +160,19 @@ void set_task_priority(uint8_t taskId, uint8_t priority)
     task_ptr->priority = priority;
 }
 
+uint8_t get_pid() {
+    for (uint8_t i = 0; i < N_TASKS; i++) {
+        if (task_array[i] == current) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 void exit_task() 
 {
     preempt_disable();
-    for (uint8_t i = 0; i < N_TASKS; i++) {
-        if (task_array[i] == current) {
-            task_array[i]->state = TASK_STATE_ZOMBIE;
-            break;
-        }
-    }
+    task_array[get_pid()]->state = TASK_STATE_ZOMBIE;
 
     if (current->stack) {
         free_page(current->stack);

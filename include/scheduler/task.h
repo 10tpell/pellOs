@@ -1,7 +1,6 @@
 #ifndef __TASK_H__
 #define __TASK_H__
 
-
 #define TASK_FLAGS_KERNEL_THREAD 0x2
 #define MAX_PROCESS_PAGES 16
 
@@ -23,7 +22,8 @@
                     /* preempt_count:*/ 0,\
                     /* stack:*/ 0,\
                     /* flags:*/ TASK_FLAGS_KERNEL_THREAD, \
-                    /* mm:*/ {0, 0, {{0}}, 0, {0}} }
+                    /* mm:*/ {0, 0, {{0}}, 0, {0}}, \
+                    /* fd_table:*/ {0, 0} }
 
 #define THREAD_CPU_CONTEXT 0
 
@@ -32,6 +32,7 @@
 #ifndef ASM
 
 #include <types.h>
+#include <fs/vfs.h>
 
 enum TaskState {
     TASK_STATE_RUNNING = 0,
@@ -95,6 +96,7 @@ typedef struct task_struct_struct {
     uint64_t stack;
     uint64_t flags;
     mm_t mm;
+    file_desc_table_t fd_table;
 } task_struct;
 
 typedef struct pt_regs_struct {

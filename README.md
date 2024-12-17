@@ -1,9 +1,16 @@
 # PellOS
 
 ## TODO
-- [ ] Basic initrd (`in progress`)
+- [ ] filesystem support
+  - [ ] Basic initrd (`in progress`)
+    - [x] basic read functionality
+    - [x] image generation scripts
+    - [ ] loader for images
   - [x] reading from files in kernel
-  - [ ] syscall support to read files from userspace
+  - [x] syscall support to read files from userspace
+  - [ ] access devices through fs
+    - [x] initial vfs support
+    - [ ] devfs implementation
 - [ ] executable loading
   - [ ] kernel module loading
   - [ ] userspace executable loading
@@ -11,6 +18,8 @@
 - [ ] kmalloc cleanup
   - [ ] look into alignment
   - [ ] clean up logic (it's messy in there)
+- [ ] Basic security
+  - [ ] Users
 
 
 ## Current issues

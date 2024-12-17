@@ -25,9 +25,16 @@ call_syscall_fork:
     svc 0x0
     ret
 
-/* uint32_t call_syscall_read(uint64_t device_id) */
+/* sint64_t syscall_read(file_desc_t fd, char* buf, uint32_t size) */
 .globl call_syscall_read
 call_syscall_read:
     mov x8, #SYS_CALL_READ
+    svc 0x0
+    ret
+
+/* file_desc_t call_syscall_open(const char* path, uint64_t flags) */
+.globl call_syscall_open
+call_syscall_open:
+    mov x8, #SYS_CALL_OPEN
     svc 0x0
     ret

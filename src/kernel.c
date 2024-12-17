@@ -70,9 +70,6 @@ int main() {
     irq_barrier();
     enable_irq();
     irq_barrier();
-    
-    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task, 0);
-    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task1, 0);
 
     printf("allocating kernel heap...\n");
     uint64_t kernel_heap_phys = get_next_free_page();
@@ -85,6 +82,10 @@ int main() {
 
     /* kmalloc test */
     kmalloc_init(heap_ptr);
+
+    
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task, 0);
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task1, 0);
 
     rdfs_init(&__ramdisk_start);
 

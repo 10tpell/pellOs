@@ -1,6 +1,7 @@
 #include <utils/printf.h>
 #include <scheduler/scheduler.h>
 #include <peripherals/system_timer.h>
+#include <fs/vfs.h>
 
 uint64_t syscall_write(uint64_t buf_ptr) {
     char* buf = (char *) buf_ptr;
@@ -23,12 +24,18 @@ uint64_t syscall_exit(uint64_t ret) {
 
 #define SYSTEM_TIMER_DEVICE_ID 0
 
-uint64_t syscall_read(uint64_t deviceId) {
-    if (deviceId == SYSTEM_TIMER_DEVICE_ID) {
-        return (uint64_t) get_timer_val();
-    }
-    return (uint64_t) -1;
+sint64_t syscall_read(file_desc_t fd, char* buf, uint32_t size) {
+    if (!is_valid_fd(fd)) return -1;
+    if (!buf) return -1;
+
+    return vfs_read(fd, buf, size);
 }
 
-uint64_t (*sys_call_table[]) (uint64_t) = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read};
+file_desc_t syscall_open(const char* path, uint64_t flags) {
+    if (!path) return -1;
 
+    return vfs_open(path, flags);
+}
+// uint64_t (*sys_call_table[]) (uint64_t) = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read};
+
+void* sys_call_table[] = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read, &syscall_open};

@@ -72,4 +72,5 @@ cpu_switch_to:
     mov    sp, x9
 
     /* returns to ret_from_fork if new task, if not return to value of pc in cpu_context */
+    // bl init_fd_table
     ret

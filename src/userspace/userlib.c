@@ -28,15 +28,24 @@ memzero:
 #define SYSTEM_TIMER_DEVICE_ID 0
 
 
+static file_desc_t timer_fd = -1;
+
 /*
 block on task for a set amount of time:
 * delay_ms: time in us to wait
 */
 void delay(uint32_t delay_ms) {
-    uint32_t currentTime = call_syscall_read(SYSTEM_TIMER_DEVICE_ID);
-    uint64_t targetTime = currentTime + delay_ms;
-	while(currentTime < targetTime) {
-		currentTime = call_syscall_read(SYSTEM_TIMER_DEVICE_ID);
+	uint32_t buf = 0;
+    call_syscall_read(timer_fd, (char *) &buf, sizeof(uint32_t));
+    uint64_t targetTime = buf + delay_ms;
+	while(buf < targetTime) {
+		call_syscall_read(timer_fd, (char *) &buf, sizeof(uint32_t));
 	}
     return;
+}
+
+void delay_init() {
+	if (timer_fd < 0) {
+		timer_fd = call_syscall_open("/dev/timer", 0);
+	}
 }
