@@ -18,6 +18,7 @@ uint8_t call_syscall_fork();
 uint8_t call_syscall_write(char* buf);
 sint64_t call_syscall_read(file_desc_t fd, char* buf, uint32_t size);
 file_desc_t call_syscall_open(const char* path, uint64_t flags);
+void call_syscall_close(file_desc_t fd);
 
 #endif
 

@@ -36,6 +36,10 @@ file_desc_t syscall_open(const char* path, uint64_t flags) {
 
     return vfs_open(path, flags);
 }
+
+void syscall_close(file_desc_t fd) {
+    // TODO
+}
 // uint64_t (*sys_call_table[]) (uint64_t) = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read};
 
 void* sys_call_table[] = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read, &syscall_open};

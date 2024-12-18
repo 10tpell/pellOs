@@ -11,7 +11,7 @@ ASMFILES = 	$(wildcard src/asm/*.S)
 
 OFILES = $(CFILES:%.c=build/%_c.o)
 OFILES += $(ASMFILES:%.S=build/%_s.o)
-GCCFLAGS = -Wall -Wextra -pedantic-errors -O0 -ffreestanding -nostdlib -nostartfiles -mgeneral-regs-only #TODO: remove general-regs-only (enable fp support on boot), add -O2
+GCCFLAGS = -Wall -Wextra -Wpedantic -O0 -ffreestanding -nostdlib -nostartfiles -mgeneral-regs-only #TODO: remove general-regs-only (enable fp support on boot), add -O2
 GCCPATH = ../pellOs/gcc/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-elf/bin
 OUTPUT_APPEND = rpi4
 ADDITIONAL_DEFINES = -UUART_DEBUG

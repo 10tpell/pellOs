@@ -38,3 +38,10 @@ call_syscall_open:
     mov x8, #SYS_CALL_OPEN
     svc 0x0
     ret
+
+/* void call_syscall_close(file_desc_t fd) */
+.globl call_syscall_close
+call_syscall_close:
+    mov, x8, #SYS_CALL_CLOSE
+    svc 0x0
+    ret

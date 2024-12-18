@@ -2,16 +2,18 @@
 
 ## TODO
 - [ ] filesystem support
-  - [ ] Basic initrd (`in progress`)
+  - [ ] Basic initrd (in progress)
     - [x] basic read functionality
     - [x] image generation scripts
     - [ ] loader for images
   - [x] reading from files in kernel
   - [x] syscall support to read files from userspace
+  - [ ] `close()` syscall
   - [ ] access devices through fs
     - [x] initial vfs support
     - [ ] devfs implementation
 - [ ] executable loading
+  - [ ] Elf loader (#1)
   - [ ] kernel module loading
   - [ ] userspace executable loading
     - [ ] userspace library
