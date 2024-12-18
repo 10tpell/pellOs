@@ -5,3 +5,4 @@ qemu/
 *.elf
 *.img
 *.map
+bin/kernel8 - Copy.img:Zone.Identifier
