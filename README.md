@@ -13,9 +13,10 @@
     - [x] initial vfs support
     - [ ] devfs implementation
 - [ ] executable loading
-  - [ ] Elf loader (#1)
   - [ ] kernel module loading
   - [ ] userspace executable loading
+    - [x] static executables [elf loading][#1]
+    - [ ] dynamic linking
     - [ ] userspace library
 - [ ] kmalloc cleanup
   - [ ] look into alignment

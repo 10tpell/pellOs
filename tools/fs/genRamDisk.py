@@ -1,5 +1,5 @@
 from os import listdir
-from os.path import isfile, join, abspath, getsize
+from os.path import isfile, join, abspath, getsize, realpath, dirname
 
 FILE_DIRECTORY_SIZE = 96
 dummy_part_size = 0xffff
@@ -19,7 +19,7 @@ def genHeader(f, d):
     header_list += f.to_bytes(8, "little")
     header_list += d.to_bytes(8, "little")
 
-    print(header_list)
+    # print(header_list)
     return bytes(header_list)
 
 class directory:
@@ -42,7 +42,7 @@ class directory:
         full_path = join(self.path, self.name)
         for node in listdir(full_path):
             if isfile(join(full_path, node)):
-                print(f"{full_path}/{node}")
+                # print(f"{full_path}/{node}")
                 tmp_file = file(full_path, node)
                 self.add_child(tmp_file)
             else:
@@ -68,7 +68,7 @@ def flatten_dir(dir, start_id = 0):
     id = start_id
     for child in dir.children:
         child.id = id
-        print(f"Adding {child.name} with id {id}")
+        # print(f"Adding {child.name} with id {id}")
         if type(child) is file:
             child_list.append(child)
             id += 1
@@ -76,14 +76,14 @@ def flatten_dir(dir, start_id = 0):
             id += 1
             (new_list, new_id) = flatten_dir(child, id)
             child_list += new_list
-            id += new_id
+            id = new_id
     return (child_list, id)
 
 def genFileDirectories(flist):
     file_entry_byte_array = bytes([])
     curr_offset = 0
     for (_, name, size, is_dir, fileId) in flist:
-        print(f"id: {fileId}, name: {name}")
+        # print(f"id: {fileId}, name: {name}")
         file_entry_byte_array += fileId.to_bytes(8, 'little')      # uint64_t file_id
         dir_type = 0
         if is_dir:
@@ -114,50 +114,52 @@ def genDataDirectories(flist, dlist):
         
         if isDir:
             for d in dlist[i].children:
-                print(f"{d.name} - id: {d.id}")
+                # print(f"{d.name} - id: {d.id}")
                 data += d.id.to_bytes(8, 'little')
-            i += 1
         else:
             with open(filename, 'rb') as f:
                 data += bytes(f.read(size))
+        i += 1
     return data
 
 
 
 def main():
     # create a list of files and directories
-    root_path = abspath("../../ramdisk")
+    dir_path = dirname(realpath(__file__))
+    root_path = abspath(join(dir_path, "../../ramdisk"))
     root_dir = directory(root_path, "", [])
     root_dir.parse()
 
     root_dir.id = 0
     (flat_list, _) = flatten_dir(root_dir, 1)
     
-    bin_list = []
-    dlist = []
+    bin_list = [None] * len(flat_list)
+    dlist = [None] * len(flat_list)
     for e in flat_list:
         if type(e) is directory:
             size = len(e.children) * 8
-            bin_list.append((e.path, e.name, size, True, e.id))
-            dlist.append(e)
+            # print(f"id: {e.id}")
+            bin_list[e.id] = (e.path, e.name, size, True, e.id)
+            dlist[e.id] = e
         elif type(e) is file:
-            bin_list.append((e.path, e.name, e.size, False, e.id))
+            bin_list[e.id] = (e.path, e.name, e.size, False, e.id)
 
     file_dir_size = len(bin_list) * FILE_DIRECTORY_SIZE
     data_dir_size = 0
     for (_, _, size, _, _) in bin_list:
         data_dir_size += size
     
-    print(f"file_dir_size: {file_dir_size}, data_dir_size: {data_dir_size}")
+    # print(f"file_dir_size: {file_dir_size}, data_dir_size: {data_dir_size}")
 
     byteArray = genHeader(file_dir_size, data_dir_size)
     byteArray += genFileDirectories(bin_list)
     byteArray += genDataDirectories(bin_list, dlist)
 
-    with open('../../bin/ramdisk.bin', 'wb') as rd:
+    with open(join(dir_path, '../../bin/ramdisk.bin'), 'wb') as rd:
         rd.write(byteArray)
 
-    print("written to file")
+    print("Written RAMDISK to file")
 
 if __name__ == "__main__":
     main()

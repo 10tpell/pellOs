@@ -6,10 +6,11 @@
 #define SYS_CALL_EXIT       2
 #define SYS_CALL_READ       3 
 #define SYS_CALL_OPEN       4	
+#define SYS_CALL_CLOSE      5
 
 #ifndef ASM
 
-#include <types.h>
+#include "types.h"
 
 typedef sint16_t file_desc_t;
 

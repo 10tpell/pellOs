@@ -1,6 +1,5 @@
-#include <usr/usr_syscalls.h>
-#include <usr/programs.h>
-#include <usr/userlib.h>
+#include "../include/usr_syscalls.h"
+#include "../include/userlib.h"
 
 
 void user_task() {
