@@ -3,10 +3,11 @@
 
 #include <types.h>
 
-#define ELF_MAGIC_NUMBER = {0x7F, 0x45, 0x4C, 0x46}
-#define ELF_WORD_LEN_32 = 1
-#define ELF_WORD_LEN_64 = 2
-#define ELF_VERSION = 1
+#define ELF_MAGIC_NUMBER_LEN 4
+#define ELF_MAGIC_NUMBER {0x7F, 0x45, 0x4C, 0x46}
+#define ELF_WORD_LEN_32 1
+#define ELF_WORD_LEN_64 2
+#define ELF_VERSION 1
 
 #define ELF_MACHINE_AARCH64 0xB7
 
