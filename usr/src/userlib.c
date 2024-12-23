@@ -1,5 +1,5 @@
-#include <usr/userlib.h>
-#include <usr/usr_syscalls.h>
+#include "../include/userlib.h"
+#include "../include/usr_syscalls.h"
 #include <types.h>
 
 /*

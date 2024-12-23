@@ -20,3 +20,7 @@ file_desc_t vfs_open(const char* path, uint64_t flags) {
 
     return create_fd(file);
 }
+
+void vfs_close(file_desc_t fd) {
+    delete_fd(fd);
+}

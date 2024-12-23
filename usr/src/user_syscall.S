@@ -1,5 +1,5 @@
 #define ASM
-#include <usr/usr_syscalls.h>
+#include "../include/usr_syscalls.h"
 #undef ASM
 
 .section ".text.user"

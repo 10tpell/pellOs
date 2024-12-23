@@ -82,21 +82,18 @@ int main() {
     irq_barrier();
 
     printf("allocating kernel heap...\n");
-    uint64_t kernel_heap_phys = get_next_free_page();
-
+    uintphysptr_t kernel_heap_phys = get_next_free_page();
     for(uint8_t i = 0; i < KERNEL_HEAP_SIZE_PAGES-1; i++) {
         get_next_free_page();
     }
-
     void* heap_ptr = (void *) (kernel_heap_phys + VIRTUAL_ADDRESS_START);
-
-    /* kmalloc test */
     kmalloc_init(heap_ptr);
 
-    
-    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task, 0);
-    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uint64_t) &kernel_task1, 0);
+    printf("Creating initial processes...\n");
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task, 0);
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task1, 0);
 
+    printf("Initialising fs...\n");
     rdfs_init(&__ramdisk_start);
 
     uint64_t list_len = 0;
@@ -123,8 +120,9 @@ int main() {
         while(rdfs_read_file(&f, buf, 1)) {
             printf("%c", *buf);
         }
+        printf("\n");
+        kfree(buf);
     }
-    printf("\n");
 
     while(1) {
         /* we're here forever */

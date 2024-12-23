@@ -5,13 +5,13 @@
 #include <utils/memutils.h>
 #include <utils/printf.h>
 
-uint64_t map_table(uint64_t* table, uint64_t shift, void* virt_adr, sint32_t* new_table) {
-    uint64_t idx = ((uint64_t) virt_adr) >> shift;
+uintphysptr_t map_table(uint64_t* table, uint64_t shift, void* virt_adr, sint32_t* new_table) {
+    uint64_t idx = ((uintptr_t) virt_adr) >> shift;
     idx &= (PTRS_PER_TABLE - 1);
 
     if (!table[idx]) {
         *new_table = 1;
-        uint64_t next_level_table = get_next_free_page();
+        uintphysptr_t next_level_table = get_next_free_page();
         uint64_t entry = next_level_table | MM_TYPE_PAGE_TABLE;
         table[idx] = entry;
         return next_level_table;
@@ -21,17 +21,17 @@ uint64_t map_table(uint64_t* table, uint64_t shift, void* virt_adr, sint32_t* ne
     return table[idx] & PAGE_MASK;
 }
 
-void map_table_entry(uint64_t* table_entry, void* virt_adr, uint64_t phys_adr) {
-    uint64_t idx = ((uint64_t) virt_adr) >> PAGE_SHIFT;
+void map_table_entry(uint64_t* table_entry, void* virt_adr, uintphysptr_t phys_adr) {
+    uint64_t idx = ((uintptr_t) virt_adr) >> PAGE_SHIFT;
     idx &= PTRS_PER_TABLE - 1;
 
     uint64_t entry = phys_adr | MMU_PTE_FLAGS;
     table_entry[idx] = entry;
 }
 
-void map_page(task_struct* task, void* virt_adr, uint64_t page)
+void map_page(task_struct* task, void* virt_adr, uintphysptr_t page)
 {
-   uint64_t page_directory;
+   uintphysptr_t page_directory;
     
     if (!task->mm.pagedirectory) {
         task->mm.pagedirectory = get_next_free_page();
@@ -41,17 +41,17 @@ void map_page(task_struct* task, void* virt_adr, uint64_t page)
     page_directory = task->mm.pagedirectory;
     sint32_t new_table;
 
-    uint64_t pud = map_table((uint64_t *)(page_directory + VIRTUAL_ADDRESS_START), PGD_SHIFT, virt_adr, &new_table);
+    uintphysptr_t pud = map_table((uint64_t *)(page_directory + VIRTUAL_ADDRESS_START), PGD_SHIFT, virt_adr, &new_table);
     if(new_table) {
         task->mm.kernelpages[++task->mm.kernelpages_count] = pud;
     }
 
-    uint64_t pmd = map_table((uint64_t *)(pud + VIRTUAL_ADDRESS_START), PUD_SHIFT, virt_adr, &new_table);
+    uintphysptr_t pmd = map_table((uint64_t *)(pud + VIRTUAL_ADDRESS_START), PUD_SHIFT, virt_adr, &new_table);
     if(new_table) {
         task->mm.kernelpages[++task->mm.kernelpages_count] = pmd;
     }
 
-    uint64_t pte = map_table((uint64_t *)(pmd + VIRTUAL_ADDRESS_START), PMD_SHIFT, virt_adr, &new_table);
+    uintphysptr_t pte = map_table((uint64_t *)(pmd + VIRTUAL_ADDRESS_START), PMD_SHIFT, virt_adr, &new_table);
     if(new_table) {
         task->mm.kernelpages[++task->mm.kernelpages_count] = pte;
     }
@@ -62,14 +62,14 @@ void map_page(task_struct* task, void* virt_adr, uint64_t page)
 }
 
 void* allocate_kernel_page() {
-    uint64_t page = get_next_free_page();
+    uintphysptr_t page = get_next_free_page();
     if (!page) return 0;
     return (void*) (page + VIRTUAL_ADDRESS_START);
 }
 
 void* allocate_user_page(task_struct* task, void* virt_adr)
 {
-    uint64_t page = get_next_free_page();
+    uintphysptr_t page = get_next_free_page();
     if (!page) return 0;
 
     map_page(task, virt_adr, page);
@@ -92,11 +92,11 @@ sint8_t do_mem_abort(void* addr, uint64_t esr) {
     uint64_t dfs = esr & 63; //0b111111
     printf("do_mem_abort\n");
     if ((dfs & 60 /*0b111100*/) == 4 /*0b100*/) {
-        uint64_t page = get_next_free_page();
+        uintphysptr_t page = get_next_free_page();
         if (!page) return -1;
 
         printf("about to call map_page();\n");
-        map_page(get_current_task(), (void*) (((uint64_t) addr) & PAGE_MASK), page);
+        map_page(get_current_task(), (void*) (((uintptr_t) addr) & PAGE_MASK), page);
                 
         return 0;
     }

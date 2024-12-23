@@ -4,6 +4,7 @@
 #include <utils/printf.h>
 #include <utils/memutils.h>
 #include <arm/irq.h>
+#include <fs/vfs.h>
 #include <config.h> 
 
 static task_struct init_task = INIT_TASK;
@@ -26,7 +27,7 @@ void preempt_enable()
     current->preempt_count--;
 }
 
-uint8_t kernel_fork(uint64_t clone_flags, uint64_t fn, uint64_t args) {
+uint8_t kernel_fork(uint64_t clone_flags, uintptr_t fn, uint64_t args) {
     preempt_disable();
 
     task_struct* new_task;
@@ -60,12 +61,12 @@ uint8_t kernel_fork(uint64_t clone_flags, uint64_t fn, uint64_t args) {
 
     // for now we don't want to copy fd_table (this needs to be changed)
     // TODO: copy fd table and copy fd list across as well
-    new_task->fd_table.count = 0;
+    new_task->fd_table.bitmap = (uint8_t *) 0;
     new_task->fd_table.file = (file_t *) 0;
     
     /* set registers for new process */
-    new_task->cpu_context.pc = (uint64_t) ret_from_fork;
-    new_task->cpu_context.sp = (uint64_t) child;
+    new_task->cpu_context.pc = (uintptr_t) ret_from_fork;
+    new_task->cpu_context.sp = (uintptr_t) child;
 
     #if EXTRA_DEBUG == DEBUG_ON
     printf("kernel_fork - preempt_count: %d, priority: %d, counter: %d, state: %d\n", new_task->preempt_count, new_task->priority, new_task->counter, new_task->state);
@@ -113,7 +114,7 @@ void _schedule()
         next = 0;
         for (uint32_t i = 0; i < N_TASKS; i++) {
             task_ptr = task_array[i];
-            if ((uint64_t) task_ptr > 0 && task_ptr->state == TASK_STATE_RUNNING && (sint32_t) task_ptr->counter > c) {
+            if ((uintptr_t) task_ptr > 0 && task_ptr->state == TASK_STATE_RUNNING && (sint32_t) task_ptr->counter > c) {
                 c = task_ptr->counter;
                 next = i;
             }
@@ -172,7 +173,9 @@ uint8_t get_pid() {
 void exit_task() 
 {
     preempt_disable();
+
     task_array[get_pid()]->state = TASK_STATE_ZOMBIE;
+    destroy_fd_table();
 
     if (current->stack) {
         free_page(current->stack);

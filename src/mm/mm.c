@@ -10,7 +10,7 @@
 
 static char page_bitmap[MM_NUM_OF_PAGES/sizeof(char)] = {0, };
 
-uint64_t get_next_free_page()
+uintphysptr_t get_next_free_page()
 {
     for (uint32_t i = 0; i < MM_NUM_OF_PAGES/sizeof(char); i++) {
         if ((page_bitmap[i] & UINT8_MASK) == UINT8_MASK) {
@@ -22,7 +22,7 @@ uint64_t get_next_free_page()
         for(uint8_t j = 0; j < sizeof(char); j++) {
             if ((byte & 1) == 0) {
                 page_bitmap[i] |= (1 << j);
-                uint64_t new_page = (uint64_t) (LOW_MEMORY + (PAGE_SIZE * (i * sizeof(char)) + j));
+                uintphysptr_t new_page = (uintphysptr_t) (LOW_MEMORY + (PAGE_SIZE * (i * sizeof(char)) + j));
                 memzero((uint8_t*) (new_page + VIRTUAL_ADDRESS_START), PAGE_SIZE);
 
                 #if EXTRA_DEBUG == DEBUG_ON 
@@ -37,7 +37,7 @@ uint64_t get_next_free_page()
     return 0;
 }
 
-void free_page(uint64_t ptr) {
+void free_page(uintphysptr_t ptr) {
     uint32_t idx = (ptr - MM_AVAILABLE_PAGE_MIN) / PAGE_SIZE;
     uint32_t i = idx / 8;
     uint32_t j = idx % 8;
@@ -49,12 +49,12 @@ void free_page(uint64_t ptr) {
 
 static char kernel_memmap[MM_NUM_OF_PAGES] = {0, };
 
-uint64_t get_next_free_page() 
+uintphysptr_t get_next_free_page() 
 {
     for (uint32_t i = 0; i < MM_NUM_OF_PAGES; i++) {
         if (kernel_memmap[i] == 0) {
             kernel_memmap[i] = 1;
-            uint64_t new_page = (uint64_t) (LOW_MEMORY + (i * PAGE_SIZE));
+            uintphysptr_t new_page = (uintphysptr_t) (LOW_MEMORY + (i * PAGE_SIZE));
             memzero((uint8_t* ) (new_page + VIRTUAL_ADDRESS_START), PAGE_SIZE);
 
             #if EXTRA_DEBUG == DEBUG_ON 
@@ -66,7 +66,7 @@ uint64_t get_next_free_page()
     return 0;
 }
 
-void free_page(uint64_t ptr)
+void free_page(uintphysptr_t ptr)
 {
     kernel_memmap[(ptr - MM_AVAILABLE_PAGE_MIN) / PAGE_SIZE] = 0;
 }

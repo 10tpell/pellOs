@@ -7,13 +7,13 @@
 
 static free_mem_header_t* first_free;
 static void* heap_start_ptr;
-static uint64_t heap_start_adr;
+static uintptr_t heap_start_adr;
 static uint64_t kheap_size = KERNEL_HEAP_SIZE;
 
 void kmalloc_init(void* heap_start) {
     /* zero heap location */
     first_free = heap_start_ptr = heap_start;
-    heap_start_adr = (uint64_t) heap_start_ptr;
+    heap_start_adr = (uintptr_t) heap_start_ptr;
     memzero((uint8_t *) first_free, kheap_size);
 
     /* init first free block of heap */
@@ -46,7 +46,7 @@ void* kmalloc(uint64_t size) {
             */
            
             free_mem_header_t prev_free_block = *free_block;
-            free_block = (free_mem_header_t *)(((uint64_t) free_block) + alloc_size);
+            free_block = (free_mem_header_t *)(((uintptr_t) free_block) + alloc_size);
             /* only block */
             if (prev_free_block.prev == START_OF_HEAP && prev_free_block.next == END_OF_HEAP) {
                 if(prev_free_block.size - alloc_size == 0) {
@@ -112,7 +112,7 @@ void* kmalloc(uint64_t size) {
             *new_ptr = size;
 
             /* move ptr along by sizeof(size) so that we return variable to assign */
-            new_ptr = (uint64_t *) ((uint64_t) new_ptr + sizeof(size));
+            new_ptr = (uint64_t *) ((uintptr_t) new_ptr + sizeof(size));
 
             #if EXTRA_DEBUG == DEBUG_ON
             printf("KMALLOC: 0x%08x%08x, size: 0x%08xB\n", (uint64_t) new_ptr >> 32, ((uint64_t) new_ptr << 32) >> 32, size);
@@ -121,13 +121,13 @@ void* kmalloc(uint64_t size) {
             return (void *) new_ptr;
         }
         free_block = free_block->next;
-    } while (free_block != END_OF_HEAP);
+    } while ((free_block != END_OF_HEAP) || (free_block != START_OF_HEAP));
     return (void *) 0;
 }
 
 void kfree(void* ptr) {
     if (!ptr) return;
-    uint64_t header_adr = (uint64_t) ptr - KERNEL_MALLOC_SIZE_SIZE;
+    uint64_t header_adr = (uintptr_t) ptr - KERNEL_MALLOC_SIZE_SIZE;
     uint64_t* header_start = (uint64_t *) header_adr;
     uint64_t size = *header_start + KERNEL_MALLOC_HEADER_SIZE;
     free_mem_header_t* free_block = first_free;
@@ -137,21 +137,21 @@ void kfree(void* ptr) {
         found = 1;
     } else {
         while(free_block->next != END_OF_HEAP) {
-            if((uint64_t) free_block > (uint64_t) ptr) {
+            if((uintptr_t) free_block > (uintptr_t) ptr) {
                 found = 1;
                 break;
             }
 
             free_block = free_block->next;
         }
-        if ((!found) && (free_block->next == END_OF_HEAP) && ((uint64_t) free_block > (uint64_t) ptr)) {
+        if ((!found) && (free_block->next == END_OF_HEAP) && ((uintptr_t) free_block > (uintptr_t) ptr)) {
             found = 1;
         }
     }
 
     /* Couldn't find our block in the heap (which means either doesn't exist or it is at the end of the heap)*/
     if (!found) {
-        uint64_t free_block_adr = (uint64_t) free_block;
+        uintptr_t free_block_adr = (uintptr_t) free_block;
 
         /* Check if the block that needs freeing is between the last free block and the end of the heap */
         if ((free_block->next == END_OF_HEAP) && (free_block_adr <= header_adr)) {
@@ -173,7 +173,7 @@ void kfree(void* ptr) {
     /* Our block was before first free block (so < first_free) */
     else if (free_block->prev == START_OF_HEAP) {
         // |---???---|---header_start---|---???---|---free_block---|
-        uint64_t free_block_adr = (uint64_t) free_block;
+        uintptr_t free_block_adr = (uintptr_t) free_block;
 
         uint8_t is_contig_with_free_block = (header_adr + size == free_block_adr);
 
@@ -213,10 +213,10 @@ void kfree(void* ptr) {
     else {
         // |---free_block->prev---|---???---|---header_start---|---???---|---free_block---| 
         free_mem_header_t* prev = free_block->prev;
-        uint64_t prev_adr = (uint64_t) prev;
-        uint64_t end_of_prev = prev_adr + prev->size;
-        uint64_t header_adr = (uint64_t) header_start;
-        uint64_t free_block_adr = (uint64_t) free_block;
+        uintptr_t prev_adr = (uintptr_t) prev;
+        uintptr_t end_of_prev = prev_adr + prev->size;
+        uintptr_t header_adr = (uintptr_t) header_start;
+        uintptr_t free_block_adr = (uintptr_t) free_block;
         
         /* Is header_start right after free_block->prev */
         char prev_contig_header = (end_of_prev + 1 == header_adr);

@@ -11,4 +11,7 @@ typedef signed int sint32_t;
 typedef signed short sint16_t; 
 typedef signed char sint8_t;
 
+typedef uint64_t uintptr_t;
+typedef uint64_t uintphysptr_t;
+
 #endif

@@ -3,14 +3,13 @@
 #include <peripherals/system_timer.h>
 #include <fs/vfs.h>
 
-uint64_t syscall_write(uint64_t buf_ptr) {
+uint64_t syscall_write(char* buf_ptr) {
     char* buf = (char *) buf_ptr;
     printf(buf);
     return 0;
 }
 
-uint64_t syscall_fork(uint64_t not_used) {
-    (void) (not_used);
+uint64_t syscall_fork(void) {
     return kernel_fork(0, 0, 0);
 }
 
@@ -38,7 +37,8 @@ file_desc_t syscall_open(const char* path, uint64_t flags) {
 }
 
 void syscall_close(file_desc_t fd) {
-    // TODO
+    if (fd < 0) return;
+    vfs_close(fd);
 }
 // uint64_t (*sys_call_table[]) (uint64_t) = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read};
 

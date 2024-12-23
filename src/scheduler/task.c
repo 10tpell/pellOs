@@ -6,11 +6,11 @@
 
 task_pt_regs* get_task_pt_regs(task_struct* task)
 {
-    uint64_t ptr = ((uint64_t) task) + TASK_SIZE - sizeof(task_struct);
+    uintptr_t ptr = ((uintptr_t) task) + TASK_SIZE - sizeof(task_struct);
     return (task_pt_regs *)ptr; 
 }
 
-sint8_t move_to_userspace(void* start, uint64_t size, uint64_t pc, task_struct* task)
+sint8_t move_to_userspace(void* start, uint64_t size, uintptr_t pc, task_struct* task)
 {
     task_pt_regs* regs = get_task_pt_regs(task);
     

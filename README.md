@@ -8,7 +8,8 @@
     - [ ] loader for images
   - [x] reading from files in kernel
   - [x] syscall support to read files from userspace
-  - [ ] `close()` syscall
+  - [x] `close()` syscall
+  - [ ] copy fd table when cloning process
   - [ ] access devices through fs
     - [x] initial vfs support
     - [ ] devfs implementation

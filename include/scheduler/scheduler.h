@@ -5,7 +5,7 @@
 
 #define N_TASKS    64
 
-uint8_t kernel_fork(uint64_t clone_flags, uint64_t fn, uint64_t args);
+uint8_t kernel_fork(uint64_t clone_flags, uintptr_t fn, uintptr_t args);
 void exit_task();
 void wait_on_task(uint8_t taskId);
 void set_task_priority(uint8_t taskId, uint8_t priority);

@@ -22,7 +22,7 @@
 
 void* allocate_user_page(task_struct* task, void* virt_adr);
 void* allocate_kernel_page();
-void set_page_directory(uint64_t page_directory);
+void set_page_directory(uintphysptr_t page_directory);
 sint8_t copy_virtual_memory(task_struct* task);
 
 #endif

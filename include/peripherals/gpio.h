@@ -99,7 +99,7 @@ static inline uint32_t gpio_writeReg(uint32_t* base, uint32_t pin, uint32_t valu
 
     uint8_t numFields = 32 / fieldSize;
     uint8_t shift = (pin % numFields) * fieldSize;
-    uint64_t regAddr = (uint64_t) base + (pin / numFields) * 4;
+    uintptr_t regAddr = (uintptr_t) base + (pin / numFields) * 4;
 
     uint32_t currVal = reg_read((uint32_t*) regAddr);
     currVal &= ~(fieldMax << shift);

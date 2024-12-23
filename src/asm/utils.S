@@ -43,6 +43,13 @@ memzero:
 	b.gt memzero
 	ret
 
+.globl memzero_u8
+memzero_u8:
+	str wzr, [x0], #1
+	subs x1, x1, #1
+	b.gt memzero_u8
+	ret
+
 .globl memset
 memset:
     str x1, [x0], #8

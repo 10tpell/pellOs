@@ -27,16 +27,16 @@ ADDITIONAL_DEFINES = -UUART_DEBUG
 all: clean userspace kernel8.img
 
 build/%_s.o: %.S
-	$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) -Iinclude -c -g $< -o $@
+	@$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) -Iinclude -c -g $< -o $@
 
 build/%_c.o: %.c
-	$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) $(ADDITIONAL_DEFINES) -Iinclude -c -g $< -o $@
+	@$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) $(ADDITIONAL_DEFINES) -Iinclude -c -g $< -o $@
 
 usr/build/%_c.o: %.c
-	$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) $(ADDITIONAL_DEFINES) -Iinclude -c -g $< -o $@
+	@$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) $(ADDITIONAL_DEFINES) -Iinclude -c -g $< -o $@
 
 usr/build/%_s.o: %.S
-	$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) -Iinclude -c -g $< -o $@
+	@$(GCCPATH)/aarch64-none-elf-gcc $(GCCFLAGS) -Iinclude -c -g $< -o $@
 
 qemu:   OUTPUT_APPEND = qemu
 		# ADDITIONAL_DEFINES = -DUART_DEBUG
@@ -44,15 +44,15 @@ qemu:   OUTPUT_APPEND = qemu
 qemu:	all
 
 userspace: $(OFILES_USR)
-	$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES_USR) -T usr/link_userspace.ld -o usr/bin/app1.elf -Map=usr/bin/app1.map
-	/bin/cp usr/bin/app1.elf ramdisk/bin/app1.elf
-	/usr/bin/python tools/fs/genRamDisk.py
+	@$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES_USR) -T usr/link_userspace.ld -o usr/bin/app1.elf -Map=usr/bin/app1.map
+	@/bin/cp usr/bin/app1.elf ramdisk/bin/app1.elf
+	@/usr/bin/python tools/fs/genRamDisk.py
 
 kernel8.img: $(OFILES)
-	$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES) -T link_$(OUTPUT_APPEND).ld -o bin/kernel8.elf -Map=bin/kernel.map
-	$(GCCPATH)/aarch64-none-elf-objcopy -O binary bin/kernel8.elf bin/kernel8.img
-	/bin/cp bin/kernel8.img bin/kernel8_$(OUTPUT_APPEND).img
+	@$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES) -T link_$(OUTPUT_APPEND).ld -o bin/kernel8.elf -Map=bin/kernel.map
+	@$(GCCPATH)/aarch64-none-elf-objcopy -O binary bin/kernel8.elf bin/kernel8.img
+	@/bin/cp bin/kernel8.img bin/kernel8_$(OUTPUT_APPEND).img
 
 clean:
-	/bin/rm bin/kernel8.elf *.o *.img > /dev/null 2> /dev/null || true
-	/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o build/src/mm/*.o build/src/userspace/*.o build/src/lib/*.o build/src/fs/*.o build/src/fs/*/*.o > /dev/null 2> /dev/null || true
+	@/bin/rm bin/kernel8.elf *.o *.img > /dev/null 2> /dev/null || true
+	@/bin/rm build/src/*.o build/src/peripherals/*.o build/src/scheduler/*.o build/src/asm/*.o build/src/utils/*.o build/src/mm/*.o build/src/userspace/*.o build/src/lib/*.o build/src/fs/*.o build/src/fs/*/*.o > /dev/null 2> /dev/null || true

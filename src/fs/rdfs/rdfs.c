@@ -15,12 +15,12 @@ sint8_t rdfs_init(void* initial_offset) {
     rdfs_start = (rdfs_partition_header_t *) initial_offset;
     if (rdfs_start->magic_number != RDFS_MAGIC_NUMBER) return -1;
 
-    first_file = (rdfs_file_dir_entry_t *) ((uint64_t) rdfs_start + sizeof(rdfs_partition_header_t));
+    first_file = (rdfs_file_dir_entry_t *) ((uintptr_t) rdfs_start + sizeof(rdfs_partition_header_t));
     numFiles = rdfs_start->file_directory_size / sizeof(rdfs_file_dir_entry_t);
     return 0;
 }
 
-#define DATA_LOCATION(f) ((void *) ((uint64_t) rdfs_start + rdfs_start->file_directory_size + f->data_block_offset + sizeof(rdfs_partition_header_t)))
+#define DATA_LOCATION(f) ((void *) ((uintptr_t) rdfs_start + rdfs_start->file_directory_size + f->data_block_offset + sizeof(rdfs_partition_header_t)))
 
 uint64_t* rdfs_get_file_list_from_dir_id(uint64_t curr_dir_id, uint64_t* list_size) {
     rdfs_file_dir_entry_t* file = &first_file[curr_dir_id];

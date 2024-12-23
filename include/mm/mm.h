@@ -7,8 +7,8 @@
 
 #include "types.h"
 
-uint64_t get_next_free_page();
-void free_page(uint64_t ptr);
+uintphysptr_t get_next_free_page();
+void free_page(uintphysptr_t ptr);
 
 #endif
 
