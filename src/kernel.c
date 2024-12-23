@@ -9,6 +9,8 @@
 #include <lib/kmalloc.h>
 #include <fs/rdfs/rdfs.h>
 #include <fs/file.h>
+#include <fs/stat.h>
+#include <lib/elf/elf.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -113,6 +115,20 @@ int main() {
         while(rdfs_read_file(&f, buf, 1)) {
             printf("%c", *buf);
         }
+    }
+    printf("\n");
+
+    /* ELF Testing */
+    stat_t st;
+    rdfs_getattr("/bin/app1.elf", &st);
+    printf("app1.elf size: %d, heap_size: %d\n", st.st_size, KERNEL_HEAP_SIZE);
+
+    file_t elf_file = {0};
+    if (rdfs_open_file("/bin/app1.elf", 0, &elf_file) >= 0) {
+        uint8_t* elf_buf = (uint8_t *) kmalloc(st.st_size);
+        rdfs_read_file(&elf_file, elf_buf, st.st_size);
+
+        elf_load((elf_header_t *) elf_buf);
     }
 
 

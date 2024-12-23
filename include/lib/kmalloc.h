@@ -7,7 +7,7 @@
 #define START_OF_HEAP ((free_mem_header_t *) 0)
 #define END_OF_HEAP ((free_mem_header_t *) -1)
 
-#define KERNEL_HEAP_SIZE_PAGES 4
+#define KERNEL_HEAP_SIZE_PAGES 64
 #define KERNEL_HEAP_SIZE (KERNEL_HEAP_SIZE_PAGES * PAGE_SIZE)
 
 #define KERNEL_MALLOC_SIZE_SIZE (sizeof(uint64_t))

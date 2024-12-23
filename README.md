@@ -33,4 +33,4 @@
 * be more graceful with kernel tasks returning (currently crashes)
 
 ## Open Source
-* printf - [github.com/mpaland](https://github.com/mpaland/printf)
+* printf - [Kustaa Nyholm](http://www.sparetimelabs.com/tinyprintf/tinyprintf.php)

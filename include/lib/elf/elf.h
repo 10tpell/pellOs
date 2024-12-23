@@ -55,4 +55,6 @@ typedef struct elf_section_header_struct {
     uint64_t sh_entsize;            // Contains the size, in bytes, of each entry, for sections that contain fixed-size entries. Otherwise, this field contains zero.
 } elf_section_header_t;
 
+sint8_t elf_load(elf_header_t* header);
+
 #endif
