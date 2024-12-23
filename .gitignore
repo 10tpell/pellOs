@@ -2,7 +2,8 @@
 gcc/
 qemu/
 *.o
-*.elf
+bin/*.elf
+usr/bin/
 *.img
 *.map
 bin/kernel8 - Copy.img:Zone.Identifier
