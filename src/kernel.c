@@ -22,6 +22,7 @@
 #endif
 
 #include <peripherals/system_timer.h>
+#include <peripherals/generic_timer.h>
 #include <peripherals/framebuffer.h>
 #include <utils/printf.h>
 #include <utils/shell.h>
@@ -74,12 +75,14 @@ int main() {
     printf("Booting...\n");
     irq_vector_init();
     system_timer_init();
+    generic_timer_init();
 
     printf("Enabling IRQs...\n");
-    enable_interrupt_controller();
     irq_barrier();
     enable_irq();
     irq_barrier();
+
+    enable_interrupt_controller();
 
     printf("allocating kernel heap...\n");
     uintphysptr_t kernel_heap_phys = get_next_free_page();

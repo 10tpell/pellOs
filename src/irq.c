@@ -70,35 +70,28 @@ void enableISR(uint32_t isrId)
 }
 
 void enable_interrupt_controller()
-{
+{    
+    tick_occured = 0;
+
+    /* enable system timer, if it doesn't work then we're on QEMU */
     assignTargets(SYSTEM_TIMER_IRQ_1, 0);
     enableISR(SYSTEM_TIMER_IRQ_1);
+
+    wait_time(TICK_INTERVAL * 2);
+
+    /* if on QEMU enable generic ARM timer and do weird QEMU GIC logic */
+    if (!tick_occured) {
+        printf("No system timer tick occured, running QEMU logic");
+
+        /* This is required for QEMU to work with IRQs */
+        *((uint32_t *) IRQ_GICD_BASE) |= 3;
+        *((uint32_t *) IRQ_GICC_BASE) |= 3;
+        *((uint32_t *) IRQ_GICC_PMR) |= 0xFF;
+
+        assignTargets(ARM_GENERIC_TIMER, 0);
+        enableISR(ARM_GENERIC_TIMER);
+    }
 }
-/*
-#define IRQ_GIC_BASE_PERIPHERAL         0xFF840000U
-
-#define IRQ_GIC_DIST_OFFSET             0x1000U
-#define IRQ_GIC_DIST                    (IRQ_GIC_BASE_PERIPHERAL + IRQ_GIC_DIST_OFFSET)
-#define IRQ_GICD_BASE                   IRQ_GIC_DIST
-
-#define IRQ_GIC_CPU_OFFSET              0x2000U
-#define IRQ_GIC_CPU                     (IRQ_GIC_BASE_PERIPHERAL + IRQ_GIC_CPU_OFFSET)
-#define IRQ_GICC_BASE                   IRQ_GIC_CPU
-#define IRQ_GICC_CTLR_OFFSET            0x0U
-#define IRQ_GICC_CTLR                   (IRQ_GICC_BASE + IRQ_GICC_CTLR_OFFSET)
-#define IRQ_GICC_PMR_OFFSET             0x04U
-#define IRQ_GICC_PMR                    (IRQ_GICC_BASE + IRQ_GICC_PMR_OFFSET)
-#define IRQ_GICC_BPR_OFFSET             0x08U
-#define IRQ_GICC_BPR                    (IRQ_GICC_BASE + IRQ_GICC_BPR_OFFSET)
-#define IRQ_GICC_IAR_OFFSET             0x0CU
-#define IRQ_GICC_IAR                    (IRQ_GICC_BASE + IRQ_GICC_IAR_OFFSET)  // 0xFF84200C
-#define IRQ_GICC_EOIR_OFFSET            0x10U
-#define IRQ_GICC_EOIR                   (IRQ_GICC_BASE + IRQ_GICC_EOIR_OFFSET)
-#define IRQ_GICC_RPR_OFFSET             0x14U
-#define IRQ_GICC_RPR                    (IRQ_GICC_BASE + IRQ_GICC_RPR_OFFSET)
-#define IRQ_GICC_HPPIR_OFFSET           0x18U
-#define IRQ_GICC_HPPIR                  (IRQ_GICC_BASE + IRQ_GICC_HPPIR_OFFSET)
-*/
 
 void gic_debug_print() 
 {
@@ -152,10 +145,16 @@ void handle_irq(void)
 	switch (irq) {
 		case (SYSTEM_TIMER_IRQ_1):
             #if IRQ_CONTROLLER == USE_GIC_IRQS
-            *((volatile uint32_t*)IRQ_GICC_EOIR) |= irqAck;
+            *((volatile uint32_t*)IRQ_GICC_EOIR) = irqAck;
             #endif
 			handle_timer_c0_ISR();
 			break;
+        case (ARM_GENERIC_TIMER):
+            #if IRQ_CONTROLLER == USE_GIC_IRQS
+            *((volatile uint32_t*)IRQ_GICC_EOIR) = irqAck;
+            #endif
+            handle_generic_timer_irq();
+            break;
 		default:
 			printf("Unknown pending irq: %x\r\n", irq);
             break;

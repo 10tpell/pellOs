@@ -34,4 +34,6 @@ uint32_t get_timer_val();
 uint32_t wait_time(uint32_t time_us);
 uint8_t poll_isr(uint8_t timer_id);
 
+extern uint8_t tick_occured;
+
 #endif

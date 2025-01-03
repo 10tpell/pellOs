@@ -1,7 +1,7 @@
 SECTIONS
 {
     . = 0x0000;                             /* userspace programs start at 0 */
-
+    ENTRY(main)
     /* code */
     .text : { *(.text .text.* .gnu.linkonce.t*) }
 

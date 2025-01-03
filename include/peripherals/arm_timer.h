@@ -20,6 +20,6 @@ typedef struct arm_timer_regs_struct {
     volatile uint32_t freecnt;
 } arm_timer_regs;
 
-#define ARM_TIMER_REGS_PTR          ((timer_regs *) ARM_TIMER_LOAD_OFFSET)
+#define ARM_TIMER_REGS_PTR          ((arm_timer_regs *) ARM_TIMER_LOAD_OFFSET)
 
 #endif
