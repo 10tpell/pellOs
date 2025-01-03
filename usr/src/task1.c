@@ -2,7 +2,7 @@
 #include "../include/userlib.h"
 
 
-void user_task() {
+void main() {
     // char test_buf[60];
     call_syscall_write("Inside userspace!!\n\r");
     uint8_t pid = 1; //call_syscall_fork();
