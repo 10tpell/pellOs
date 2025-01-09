@@ -25,5 +25,5 @@ sint8_t elf_load(elf_header_t* header) {
     #endif
 
     void* program = (void *) ((uintptr_t) header + header1->p_offset);
-    return move_to_userspace(program, header1->p_memsz, 0, get_current_task());
+    return move_to_userspace(program, header1->p_filesz, header->e_entry, get_current_task());
 }

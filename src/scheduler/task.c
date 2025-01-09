@@ -6,7 +6,7 @@
 
 task_pt_regs* get_task_pt_regs(task_struct* task)
 {
-    uintptr_t ptr = ((uintptr_t) task) + TASK_SIZE - sizeof(task_struct);
+    uintptr_t ptr = ((uintptr_t) task) + TASK_SIZE - sizeof(task_pt_regs);
     return (task_pt_regs *)ptr; 
 }
 

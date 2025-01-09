@@ -45,3 +45,9 @@ call_syscall_close:
     mov x8, #SYS_CALL_CLOSE
     svc 0x0
     ret
+
+.globl call_syscall_wait
+call_syscall_wait:
+    mov x8, #SYS_CALL_WAIT
+    svc 0x0
+    ret

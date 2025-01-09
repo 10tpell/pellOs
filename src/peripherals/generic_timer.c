@@ -7,5 +7,6 @@ void generic_timer_init() {
 
 void handle_generic_timer_irq() {
     set_timer();
+    
     scheduler_tick();
 }

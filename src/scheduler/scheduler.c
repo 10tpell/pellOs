@@ -6,6 +6,7 @@
 #include <arm/irq.h>
 #include <fs/vfs.h>
 #include <config.h> 
+#include <lib/software_timer.h>
 
 static task_struct init_task = INIT_TASK;
 task_struct* current = &init_task;
@@ -91,9 +92,12 @@ void switch_to(task_struct* next)
     
     task_struct* prev = current;
     current = next;
+
     #if EXTRA_DEBUG == DEBUG_ON
+    printf("context_switch: %d -> %d\n", get_pid_from_ptr(prev), get_pid());
     printf("cpu_switch_to(0x%08x, 0x%08x);\n", prev, next);
     #endif
+    set_page_directory(next->mm.pagedirectory);
     cpu_switch_to(prev, next);
 }
 
@@ -109,14 +113,17 @@ void _schedule()
     sint32_t c;
     task_struct* task_ptr;
 
+    check_timers(); // Check if any timers have expired first so that they can be scheduled
+
     for(;;) {
         c = -1;
         next = 0;
+        uint32_t startIdx = get_pid();
         for (uint32_t i = 0; i < N_TASKS; i++) {
-            task_ptr = task_array[i];
+            task_ptr = task_array[(startIdx + i) % N_TASKS];
             if ((uintptr_t) task_ptr > 0 && task_ptr->state == TASK_STATE_RUNNING && (sint32_t) task_ptr->counter > c) {
                 c = task_ptr->counter;
-                next = i;
+                next = (startIdx + i) % N_TASKS;
             }
         }
 
@@ -142,12 +149,14 @@ void schedule()
 
 void scheduler_tick()
 {
-    current->counter--;
+    --current->counter;
+    increment_tick(); // tick software timers
     if (current->counter > 0 || current->preempt_count > 0)
     {
         return;
     }
     current->counter = 0;
+
     enable_irq();
     _schedule();
     disable_irq();
@@ -170,6 +179,15 @@ uint8_t get_pid() {
     return 0;
 }
 
+uint8_t get_pid_from_ptr(task_struct* ptr) {
+    for (uint8_t i = 0; i < N_TASKS; i++) {
+        if (task_array[i] == ptr) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 void exit_task() 
 {
     preempt_disable();
@@ -181,6 +199,7 @@ void exit_task()
         free_page(current->stack);
     }
 
+    enable_irq();
     preempt_enable();
     schedule();
 }

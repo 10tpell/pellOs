@@ -8,8 +8,10 @@
 #endif
 
 #include <peripherals/system_timer.h>
+#include <peripherals/generic_timer.h>
 #include <peripherals/uart.h>
 #include <utils/printf.h>
+#include <scheduler/scheduler.h>
 
 #if IRQ_CONTROLLER < USE_TUT_IRQS
 const char *entry_error_messages[] = {
@@ -81,7 +83,7 @@ void enable_interrupt_controller()
 
     /* if on QEMU enable generic ARM timer and do weird QEMU GIC logic */
     if (!tick_occured) {
-        printf("No system timer tick occured, running QEMU logic");
+        printf("No system timer tick occured, running QEMU logic\n");
 
         /* This is required for QEMU to work with IRQs */
         *((uint32_t *) IRQ_GICD_BASE) |= 3;
@@ -161,11 +163,15 @@ void handle_irq(void)
 	}
 }
 
+extern uint8_t get_el();
+
 void show_invalid_exception_message(int type, unsigned long esr, unsigned long address, unsigned long far)
 {
-	printf("%s, ESR: %x, address: %lx, far: %lx\r\n", entry_error_messages[type], esr, address, far);
+	printf("%s, ESR: %x, address: %lx, far: %lx current_pid: %d\r\n", entry_error_messages[type], esr, address, far, get_pid());
     //backup for lack of long support
     printf("address_upper: %x , address_lower: %x\n", address >> 32, (address << 32) >> 32 );
+    printf("FAR: 0x%08x%08x\n", far >> 32, (far << 32) >> 32);
+    printf("EL: %d\n", get_el());
 }
 
 #endif

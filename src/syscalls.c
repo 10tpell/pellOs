@@ -2,6 +2,7 @@
 #include <scheduler/scheduler.h>
 #include <peripherals/system_timer.h>
 #include <fs/vfs.h>
+#include <lib/software_timer.h>
 
 uint64_t syscall_write(char* buf_ptr) {
     char* buf = (char *) buf_ptr;
@@ -11,12 +12,13 @@ uint64_t syscall_write(char* buf_ptr) {
 
 uint64_t syscall_fork(void) {
     return kernel_fork(0, 0, 0);
+    // return get_pid();
 }
 
 uint64_t syscall_exit(uint64_t ret) {
-    printf("Thread exiting with retcode: %ld\n", ret);
+    printf("Thread %d exiting with retcode: %d\n", get_pid(), ret);
     exit_task();
-    
+
     // should never reach here
     return 0;
 }
@@ -40,6 +42,11 @@ void syscall_close(file_desc_t fd) {
     if (fd < 0) return;
     vfs_close(fd);
 }
+
+void syscall_wait(uint32_t delay_ms) {
+    register_one_hit(delay_ms);
+    return;
+}
 // uint64_t (*sys_call_table[]) (uint64_t) = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read};
 
-void* sys_call_table[] = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read, &syscall_open};
+void* sys_call_table[] = {&syscall_write, &syscall_fork, &syscall_exit, &syscall_read, &syscall_open, &syscall_close, &syscall_wait};

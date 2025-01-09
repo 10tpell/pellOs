@@ -27,13 +27,20 @@ memcpy_u8:
 	b.gt memcpy_u8
 	ret
 
-.globl strcpy
-strcpy:
-	ldr w2, [x1], #1
-	str w2, [x0], #1
+/* void strcpy_s(const char* dest, uint64_t destsz, const char* src); */
+.globl strcpy_s
+strcpy_s:
+	cmp x1, xzr
+	b.eq ret
+	sub x1, x1, #1
 
-	cmp w2, wzr
-	b.gt strcpy
+	ldr w3, [x2], #1
+	str w3, [x0], #1
+
+	cmp w3, wzr
+	b.gt strcpy_s
+
+ret:
 	ret
 
 .globl memzero
@@ -56,22 +63,22 @@ memset:
     subs x2, x2, #8
     b.gt memset
 
-/* sint8_t strcmp(char* a, char* b); */
+/* sint8_t strcmp(char* a, uint32_t size, char* b); */
 .globl strcmp
 strcmp:
-	ldr x3, [x0], #8
-	ldr x4, [x1], #8
+	ldrb w3, [x0], #1
+	ldrb w4, [x1], #1
 	
-	cmp x3, xzr
+	cmp w3, wzr
 	b.eq zero
 
-	cmp x4, xzr
+	cmp w4, wzr
 	b.eq zero
 	
-	subs x2, x3, x4
+	subs w2, w3, w4
 	b.eq strcmp
-	mov x0, x2
+	mov w0, w2
 	ret
 zero:
-	sub x0, x3, x4
+	sub w0, w3, w4
 	ret  

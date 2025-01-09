@@ -10,6 +10,7 @@
 #include <fs/file.h>
 #include <fs/stat.h>
 #include <lib/elf/elf.h>
+#include <lib/software_timer.h>
 
 #if IRQ_CONTROLLER == USE_ARMC_IRQS
     #include <peripherals/irq_armc.h>
@@ -38,7 +39,7 @@ void putc(void* p, char c) {
 }
 
 void kernel_task() {
-    uart_transmitStr("kernel_task()\n");
+    printf("kernel_task() - pid: %d\n", get_pid());
     stat_t st;
     rdfs_getattr("/bin/app1.elf", &st);
     printf("app1.elf size: %d, heap_size: %d\n", st.st_size, KERNEL_HEAP_SIZE);
@@ -53,11 +54,25 @@ void kernel_task() {
     }
 }
 
+void kernel_task2() {
+    printf("starting app2 (kernelspace) - pid:%d\n", get_pid());
+    stat_t st;
+    rdfs_getattr("/bin/app2.elf", &st);
+    printf("app2.elf size: %d, heap_size: %d\n", st.st_size, KERNEL_HEAP_SIZE);
+
+    file_t elf_file = {0};
+    if (rdfs_open_file("/bin/app2.elf", 0, &elf_file) >= 0) {
+        uint8_t* elf_buf = (uint8_t *) kmalloc(st.st_size);
+        rdfs_read_file(&elf_file, elf_buf, st.st_size);
+        elf_load((elf_header_t *) elf_buf);
+    }
+}
+ 
 void kernel_task1() {
     uart_transmitStr("kernel_task1()");
     while(1) {
-        printf("tick");
-        wait_time(TICK_INTERVAL*10);
+        register_one_hit(700);
+        printf("tick\n");
     }
 }
 
@@ -68,7 +83,7 @@ int main() {
     set_page_directory(0x0);
 
     uart_transmitStr("Initialising framebuffer and printf");
-    // framebuffer_init();
+    framebuffer_init();
     init_printf((void*)0,putc);
 
     // kernel_writeStr("hello from framebuffer\n");
@@ -91,10 +106,6 @@ int main() {
     }
     void* heap_ptr = (void *) (kernel_heap_phys + VIRTUAL_ADDRESS_START);
     kmalloc_init(heap_ptr);
-
-    printf("Creating initial processes...\n");
-    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task, 0);
-    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task1, 0);
 
     printf("Initialising fs...\n");
     rdfs_init(&__ramdisk_start);
@@ -127,6 +138,12 @@ int main() {
         kfree(buf);
     }
 
+    printf("Creating initial processes...\n");
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task, 0);
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task1, 0);
+    kernel_fork(TASK_FLAGS_KERNEL_THREAD, (uintptr_t) &kernel_task2, 0);
+
+    // set_task_priority(0, 0);
     while(1) {
         /* we're here forever */
         schedule();

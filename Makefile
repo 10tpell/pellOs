@@ -44,9 +44,7 @@ qemu:   OUTPUT_APPEND = qemu
 qemu:	all
 
 userspace: $(OFILES_USR)
-	@$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES_USR) -T usr/link_userspace.ld -o usr/bin/app1.elf -Map=usr/bin/app1.map
-	@/bin/cp usr/bin/app1.elf ramdisk/bin/app1.elf
-	@/usr/bin/python tools/fs/genRamDisk.py
+	/usr/bin/python tools/fs/genRamDisk.py
 
 kernel8.img: $(OFILES)
 	@$(GCCPATH)/aarch64-none-elf-ld -nostdlib -g $(OFILES) -T link_$(OUTPUT_APPEND).ld -o bin/kernel8.elf -Map=bin/kernel.map

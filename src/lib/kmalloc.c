@@ -1,6 +1,8 @@
 #include <lib/kmalloc.h>
 #include <utils/memutils.h>
 #include <utils/printf.h>
+#include <arm/irq.h>
+#include <config.h>
 
 // #define ISALIGNED(mem, size) ((mem % size) == 0)
 // #define ALIGN(ptr, alignment) ((uint64_t) ptr + ((uint64_t) ptr % alignment))
@@ -27,7 +29,11 @@ void* kmalloc(uint64_t size) {
 
     free_mem_header_t* free_block = first_free;
 
-    if (!first_free) return (void *) 0; 
+    if (first_free == 0) {
+        printf("KMALLOC FAILED\n");
+        return (void *) 0;
+    }
+
     do {
         if(free_block->size >= alloc_size) {
             uint64_t* new_ptr = (uint64_t *) free_block;
@@ -64,7 +70,7 @@ void* kmalloc(uint64_t size) {
             }
 
             /* first free block (and there is a block after) */
-            else if (free_block->prev == START_OF_HEAP) {
+            else if (prev_free_block.prev == START_OF_HEAP) {
                 if(prev_free_block.size - alloc_size == 0) {
                     /* This free block will no longer exist */
                     prev_free_block.next->prev = START_OF_HEAP;
@@ -82,7 +88,7 @@ void* kmalloc(uint64_t size) {
             } 
 
             /* last block (there is a block before) */
-            else if (free_block->next == END_OF_HEAP) {
+            else if (prev_free_block.next == END_OF_HEAP) {
                 if(prev_free_block.size - alloc_size == 0) {
                     prev_free_block.prev->next = END_OF_HEAP; 
                 } else {
@@ -133,6 +139,13 @@ void kfree(void* ptr) {
     free_mem_header_t* free_block = first_free;
 
     uint8_t found = 0;
+
+    if (!first_free) {
+        printf("KFREE FAILED\n");
+        return;
+    }
+
+
     if (free_block->next == END_OF_HEAP && free_block->prev == START_OF_HEAP) {
         found = 1;
     } else {

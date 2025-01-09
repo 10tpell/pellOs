@@ -125,7 +125,7 @@ uint64_t* rdfs_readdir(const char* path, uint64_t* list_size) {
 sint8_t rdfs_filename_from_id(uint64_t fileid, char* filepath) {
     if(first_file[fileid].file_id != fileid) return -1;
     
-    strcpy(filepath, first_file[fileid].filename);
+    strcpy_s(filepath, RDFS_FILE_NAME_SIZE, first_file[fileid].filename);
     filepath = first_file[fileid].filename;
     return 0;
 }

@@ -6,6 +6,7 @@
 uint64_t read_cntrl();
 uint64_t read_comparator();
 uint64_t read_timer();
+uint64_t read_timer_freq();
 
 void set_cntrl(uint64_t val);
 void set_comparator(uint64_t val);

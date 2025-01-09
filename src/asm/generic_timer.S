@@ -2,22 +2,36 @@
 .globl read_cntrl
 read_cntrl:
     mrs x0, cntp_ctl_el0
+    ret
 
 /* uint64_t read_comparator(); */
 .globl read_comparator
 read_comparator:
     mrs x0, cntp_cval_el0
+    ret
 
 /* uint64_t read_timer(); */
 .globl read_timer
 read_timer:
     mrs x0, cntp_tval_el0
+    ret
+
+/* uint64_t read_timer_freq() */
+.globl read_timer_freq
+read_timer_freq:
+    mrs x0, cntfrq_el0
+    ret
+
+.globl set_cntfreq
+set_cntfreq:
+    msr cntfrq_el0, x0
+    ret
 
 /* void set_timer() */
 .globl set_timer
 set_timer:
     mrs     x0, cntfrq_el0
-    mov     x1, 1                     // 1/100 s
+    mov     x1, 10                 // 1/100 s
     udiv    x1, x0, x1
 
     mrs     x0, cntpct_el0

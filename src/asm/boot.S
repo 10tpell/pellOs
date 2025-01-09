@@ -31,7 +31,6 @@ EL2:
 //  ldr     x0, =main_entry      
     cbz     x6, switch_to_el1    // Go to EL1 if in EL3
     
-// TODO WILL CRASH HERE BECAUSE IT TRYS TO GO TO DIRECT ADDRESS OF MAIN_ENTRY (TRY HACKING THIS WITH PROGRAM COUNTER)
 main_entry:  
     /* Now create page tables */
     bl __create_page_tables // will set x1 to ttbr1 and x0 to ttbr0

@@ -41,6 +41,7 @@ file directory is always the root directory (/) of the partition.
 #define RDFS_FILE_TYPE_FILE 2
 
 #define RDFS_DIR_MAX_ENTRIES 256
+#define RDFS_FILE_NAME_SIZE 71
 
 /* Header for rdfs partition (will be located at block 0)*/
 typedef struct rdfs_partition_header {
@@ -54,7 +55,7 @@ typedef struct rdfs_partition_header {
 typedef struct rdfs_file_dir_entry {
     uint64_t file_id;
     uint8_t file_type;
-    char filename[71];
+    char filename[RDFS_FILE_NAME_SIZE];
     uint64_t data_block_offset;
     uint64_t data_entry_size;
 } rdfs_file_dir_entry_t;

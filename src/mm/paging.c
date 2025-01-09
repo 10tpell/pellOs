@@ -4,6 +4,7 @@
 #include <scheduler/scheduler.h>
 #include <utils/memutils.h>
 #include <utils/printf.h>
+#include <config.h>
 
 uintphysptr_t map_table(uint64_t* table, uint64_t shift, void* virt_adr, sint32_t* new_table) {
     uint64_t idx = ((uintptr_t) virt_adr) >> shift;
@@ -11,6 +12,9 @@ uintphysptr_t map_table(uint64_t* table, uint64_t shift, void* virt_adr, sint32_
 
     if (!table[idx]) {
         *new_table = 1;
+        #if EXTRA_DEBUG == DEBUG_ON
+        printf("map_table: ");
+        #endif
         uintphysptr_t next_level_table = get_next_free_page();
         uint64_t entry = next_level_table | MM_TYPE_PAGE_TABLE;
         table[idx] = entry;
@@ -69,9 +73,15 @@ void* allocate_kernel_page() {
 
 void* allocate_user_page(task_struct* task, void* virt_adr)
 {
+    #if EXTRA_DEBUG == DEBUG_ON
+    printf("allocate_user_page: ");
+    #endif
     uintphysptr_t page = get_next_free_page();
     if (!page) return 0;
 
+    #if EXTRA_DEBUG == DEBUG_ON
+    printf("allocate_user_page: ");
+    #endif
     map_page(task, virt_adr, page);
     return (void*) (page + VIRTUAL_ADDRESS_START);
 }
@@ -90,14 +100,14 @@ sint8_t copy_virtual_memory(task_struct* task) {
 
 sint8_t do_mem_abort(void* addr, uint64_t esr) {
     uint64_t dfs = esr & 63; //0b111111
-    printf("do_mem_abort\n");
     if ((dfs & 60 /*0b111100*/) == 4 /*0b100*/) {
+        #if EXTRA_DEBUG == DEBUG_ON
+        printf("do_mem_abort: ");
+        #endif
         uintphysptr_t page = get_next_free_page();
         if (!page) return -1;
 
-        printf("about to call map_page();\n");
         map_page(get_current_task(), (void*) (((uintptr_t) addr) & PAGE_MASK), page);
-                
         return 0;
     }
     return -1;
