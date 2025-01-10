@@ -22,11 +22,18 @@ void intToStr(uint32_t num, char* str) {
 
 void main() {
     // char test_buf[60];
+    char c;
     call_syscall_write("Inside app2!!\n\r");
 
-    for(;;) {
-        call_syscall_write("app2\n");
-        call_syscall_wait(5000);
+    file_desc_t uart = call_syscall_open("/dev/uart1", 0);
+
+    if (uart < 0) {
+        call_syscall_write("Couldn't open uart\n");
+    } else {
+        for(;;) {
+            call_syscall_read(uart, &c, 1);
+            call_syscall_write(&c);
+        }
     }
     call_syscall_exit(0);
 }

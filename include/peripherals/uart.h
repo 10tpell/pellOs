@@ -10,7 +10,11 @@
 #include "aux.h"
 
 uint8_t uart_txReady();
+uint8_t uart_rxReady();
 void uart_writeByteBlocks(char byte);
+uint8_t uart_readByte();
+void uart_handle_rx_irq(char byte);
+uint8_t uart_listen(uint8_t pid, char* c);
 
 #else
 

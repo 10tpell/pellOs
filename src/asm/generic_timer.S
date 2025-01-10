@@ -31,7 +31,7 @@ set_cntfreq:
 .globl set_timer
 set_timer:
     mrs     x0, cntfrq_el0
-    mov     x1, 10                 // 1/100 s
+    mov     x1, 1000                 // 1/100 s
     udiv    x1, x0, x1
 
     mrs     x0, cntpct_el0

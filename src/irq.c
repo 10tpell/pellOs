@@ -10,6 +10,7 @@
 #include <peripherals/system_timer.h>
 #include <peripherals/generic_timer.h>
 #include <peripherals/uart.h>
+#include <peripherals/aux.h>
 #include <utils/printf.h>
 #include <scheduler/scheduler.h>
 
@@ -75,6 +76,9 @@ void enable_interrupt_controller()
 {    
     tick_occured = 0;
 
+    assignTargets(AUX_IRQ, 0);
+    enableISR(AUX_IRQ);
+
     /* enable system timer, if it doesn't work then we're on QEMU */
     assignTargets(SYSTEM_TIMER_IRQ_1, 0);
     enableISR(SYSTEM_TIMER_IRQ_1);
@@ -90,8 +94,8 @@ void enable_interrupt_controller()
         *((uint32_t *) IRQ_GICC_BASE) |= 3;
         *((uint32_t *) IRQ_GICC_PMR) |= 0xFF;
 
-        assignTargets(ARM_GENERIC_TIMER, 0);
-        enableISR(ARM_GENERIC_TIMER);
+        assignTargets(ARM_GENERIC_TIMER_IRQ, 0);
+        enableISR(ARM_GENERIC_TIMER_IRQ);
     }
 }
 
@@ -143,19 +147,17 @@ void handle_irq(void)
     #else
     uint32_t irqAck = *((volatile uint32_t*) IRQ_GICC_IAR);
     uint32_t irq = irqAck & 0x2FF;
+    *((volatile uint32_t*)IRQ_GICC_EOIR) = irqAck;
     #endif
 	switch (irq) {
 		case (SYSTEM_TIMER_IRQ_1):
-            #if IRQ_CONTROLLER == USE_GIC_IRQS
-            *((volatile uint32_t*)IRQ_GICC_EOIR) = irqAck;
-            #endif
 			handle_timer_c0_ISR();
 			break;
-        case (ARM_GENERIC_TIMER):
-            #if IRQ_CONTROLLER == USE_GIC_IRQS
-            *((volatile uint32_t*)IRQ_GICC_EOIR) = irqAck;
-            #endif
+        case (ARM_GENERIC_TIMER_IRQ):
             handle_generic_timer_irq();
+            break;
+        case (AUX_IRQ):
+            handle_aux_irq();
             break;
 		default:
 			printf("Unknown pending irq: %x\r\n", irq);

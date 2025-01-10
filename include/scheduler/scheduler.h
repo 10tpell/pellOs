@@ -14,6 +14,7 @@ void preempt_disable();
 void schedule_tail();
 void scheduler_tick();
 void schedule();
+void wake_task(uint8_t pid);
 uint64_t get_current_task_preempt();
 task_struct* get_current_task();
 uint8_t get_pid();

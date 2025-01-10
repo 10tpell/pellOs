@@ -188,6 +188,10 @@ uint8_t get_pid_from_ptr(task_struct* ptr) {
     return 0;
 }
 
+void wake_task(uint8_t pid) {
+    task_array[pid]->state = TASK_STATE_RUNNING;
+}
+
 void exit_task() 
 {
     preempt_disable();

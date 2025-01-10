@@ -51,4 +51,6 @@
 0xc0 AUX_SPI2_CNTL0_REG SPI 2 Control register 0
 */
 
+void handle_aux_irq();
+
 #endif

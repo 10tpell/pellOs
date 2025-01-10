@@ -1,11 +1,12 @@
 #include "peripherals/uart.h"
 #include "reg_utils.h"
+#include <scheduler/scheduler.h>
 
 void uart_init() {
     uint32_t alt = 0;
     #if UART == UART1
     reg_write((uint32_t *) (AUX_ENABLES_ADDR), 1); // enable mini uart
-    reg_write((uint32_t *) (AUX_MU_IER_REG_ADDR), 0); // disable uart irqs
+    reg_write((uint32_t *) (AUX_MU_IER_REG_ADDR), 1); // enable uart rx irq
     reg_write((uint32_t *) (AUX_MU_CNTL_REG_ADDR), 0); // effectively disables uart rx/tx
     reg_write((uint32_t *) (AUX_MU_LCR_REG_ADDR), 3); // 8 data bits
     reg_write((uint32_t *) (AUX_MU_MCR_REG_ADDR), 0);
@@ -87,6 +88,42 @@ void uart_writeByteBlocks(char byte) {
     reg_write((uint32_t *) AUX_MU_IO_REG_ADDR, byte);
 }
 
+uint8_t uart_readByte() {
+    return reg_read((uint32_t *) AUX_MU_IO_REG_ADDR);
+}
+
 uint8_t uart_txReady() { 
     return reg_read((uint32_t *) AUX_MU_LSR_REG_ADDR) & 0x20; 
+}
+
+uint8_t uart_rxReady() {
+    return reg_read((uint32_t *) AUX_MU_LSR_REG_ADDR) & 0x01;
+}
+
+static char c = 0;
+static sint16_t listener = -1;
+void uart_handle_rx_irq(char byte) {
+    if (listener < 0) return;
+
+    c = byte;
+    wake_task(listener);
+}
+
+uint8_t uart_listen(uint8_t pid, char* buf) {
+    if (listener == -1) {
+        listener = pid;
+
+        task_struct* task = get_current_task();
+        task->state = TASK_STATE_BLOCKED;
+        schedule();
+
+        *buf = c; 
+        listener = -1;
+        return 1;
+    } else {
+        #if EXTRA_DEBUG == DEBUG_ON
+        printf("UART: Not setting listener as already set");
+        #endif
+        return 0;
+    }
 }

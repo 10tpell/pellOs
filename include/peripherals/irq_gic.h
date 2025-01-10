@@ -131,7 +131,8 @@ Deactivate Interrupt Register
 #define SYSTEM_TIMER_IRQ_2 (0x62) //98
 #define SYSTEM_TIMER_IRQ_3 (0x63) //99
 
-#define ARM_GENERIC_TIMER (0x1E)
+#define ARM_GENERIC_TIMER_IRQ (0x1E)
+#define AUX_IRQ (0x7D) // 125
 
 #ifndef ASM
 /* function declarations */

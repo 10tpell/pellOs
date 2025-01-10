@@ -4,7 +4,7 @@
 #include <types.h>
 #include <scheduler/task.h>
 
-#define SOFTWARE_TIMER_PRESCALER 100
+#define SOFTWARE_TIMER_PRESCALER 1
 #define SOFTWARE_TIMER_MS_TO_TICKS(t) (t / SOFTWARE_TIMER_PRESCALER) 
 
 typedef struct onehit_timer_struct {

@@ -14,6 +14,11 @@ file_desc_t vfs_open(const char* path, uint64_t flags) {
         file.flags = 0;
         file.index = 0; 
         return create_fd(file);   
+    } else if (strcmp(path, "/dev/uart1") == 0) {
+        file.file_id = 254;
+        file.flags = 0;
+        file.index = 0;
+        return create_fd(file);
     }
 
     if (rdfs_open_file(path, flags, &file) < 0) return 0;
